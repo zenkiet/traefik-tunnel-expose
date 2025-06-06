@@ -1,0 +1,99 @@
+global:
+  checkNewVersion: ${CHECK_NEW_VERSION}
+  sendAnonymousUsage: ${SEND_ANONYMOUS_USAGE}
+
+api:
+  dashboard: ${TRAEFIK_DASHBOARD}
+  insecure: ${TRAEFIK_API_INSECURE}
+  debug: ${TRAEFIK_DEBUG}
+
+entryPoints:
+  web:
+    address: ":${HTTP_PORT}"
+  websecure:
+    address: ":${HTTPS_PORT}"
+    http:
+      tls:
+        certResolver: ${CERT_RESOLVER}
+  traefik:
+    address: ":${TRAEFIK_PORT}"
+
+providers:
+  providersThrottleDuration: ${PROVIDERS_THROTTLE}
+
+  file:
+    directory: "${TRAEFIK_CONFIG_DIR}"
+    watch: ${TRAEFIK_WATCH_CONFIG}
+
+  docker:
+    endpoint: "${DOCKER_ENDPOINT}"
+    exposedByDefault: ${DOCKER_EXPOSED_DEFAULT}
+    watch: ${DOCKER_WATCH}
+
+experimental:
+  plugins:
+    traefik-oidc-auth:
+      moduleName: "github.com/sevensolutions/traefik-oidc-auth"
+      version: "v0.11.0"
+
+certificatesResolvers:
+  internal:
+    acme:
+      email: ${CF_API_EMAIL}
+      storage: ${ACME_STORAGE}
+      caServer: "${ACME_CA_SERVER}"
+      dnsChallenge:
+        provider: ${DNS_PROVIDER}
+        resolvers:
+          - "${DNS_RESOLVER_1}"
+          - "${DNS_RESOLVER_2}"
+
+log:
+  filePath: ${LOG_FILE_PATH}
+  format: ${LOG_FORMAT}
+  level: ${LOG_LEVEL}
+
+accessLog:
+  filePath: ${ACCESS_LOG_PATH}
+  format: ${ACCESS_LOG_FORMAT}
+  filters:
+    statusCodes:
+      - "200"
+      - "400-599"
+    retryAttempts: ${LOG_RETRY_ATTEMPTS}
+    minDuration: "${LOG_MIN_DURATION}"
+  bufferingSize: ${LOG_BUFFER_SIZE}
+  fields:
+    headers:
+      defaultMode: ${HEADER_LOG_MODE}
+      names:
+        User-Agent: ${LOG_USER_AGENT}
+        Authorization: ${LOG_AUTHORIZATION}
+        Cookie: ${LOG_COOKIE}
+        Set-Cookie: ${LOG_SET_COOKIE}
+
+serversTransport:
+  insecureSkipVerify: ${INSECURE_SKIP_VERIFY}
+
+metrics:
+  prometheus:
+    addEntryPointsLabels: ${METRICS_ENTRYPOINTS}
+    addServicesLabels: ${METRICS_SERVICES}
+    entryPoint: ${METRICS_ENTRYPOINT}
+
+ping:
+  entryPoint: "${PING_ENTRYPOINT}"
+
+# Tracing configuration (optional)
+# tracing:
+#   jaeger:
+#     samplingServerURL: ${JAEGER_SAMPLING_URL}
+#     localAgentHostPort: ${JAEGER_AGENT}
+
+# Rate limiting (optional)
+# http:
+#   middlewares:
+#     rate-limit:
+#       rateLimit:
+#         burst: ${RATE_LIMIT_BURST}
+#         period: ${RATE_LIMIT_PERIOD}

@@ -1,0 +1,10 @@
+http:
+  routers:
+    pocketid:
+      rule: "Host(`id.zenkiet.dev`)"
+      service: pocketid
+  services:
+    pocketid:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.111:80"

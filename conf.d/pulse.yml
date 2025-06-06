@@ -1,0 +1,41 @@
+http:
+  routers:
+    pulse:
+      rule: "Host(`monitor.zenkiet.dev`)"
+      service: "pulse"
+      middlewares:
+        #- oidc-pulse
+        - pulse-headers
+
+  services:
+    pulse:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://10.10.10.127:7655"
+
+  middlewares:
+    oidc-pulse:
+      plugin:
+        traefik-oidc-auth:
+          Secret: "5d98a82a2b16b14199334f591031a37b" # Random openssl rand -hex 16
+          Provider:
+            Url: "https://id.zenkiet.dev"
+
+            ClientId: "7c7442b2-5bf3-4725-878e-6a8a8903e003"
+            ClientSecret: "hEQxfzmOQHwsXhxyEvCQlbh4WW1K7Xih"
+          Scopes:
+            - "openid"
+            - "profile"
+            - "email"
+          SessionCookie:
+            Domain: ".zenkiet.dev"
+    pulse-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          Connection: "keep-alive"
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"

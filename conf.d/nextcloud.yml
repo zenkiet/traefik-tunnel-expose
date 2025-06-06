@@ -1,0 +1,17 @@
+http:
+  serversTransports:
+    skip-verify:
+      insecureSkipVerify: true
+
+  routers:
+    nextcloud:
+      rule: Host(`drive.zenkiet.dev`)
+      service: nextcloud
+
+  services:
+    nextcloud:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: skip-verify
+        servers:
+          - url: "https://10.10.10.130"

@@ -1,0 +1,39 @@
+http:
+  routers:
+    memos:
+      rule: "Host(`note.zenkiet.dev`)"
+      service: "memos"
+      middlewares:
+        - memos-headers
+
+  services:
+    memos:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://10.10.10.125:8081"
+
+  middlewares:
+    oidc-memos:
+      plugin:
+        traefik-oidc-auth:
+          Secret: "35da5a246aaf28417fbe0d3982c571e8" # Random openssl rand -hex 16
+          Provider:
+            Url: "https://id.zenkiet.dev"
+            ClientId: "7f4f33ba-01c9-456b-8f59-fafed82d9783"
+            ClientSecret: "QaJVzEw0rhVBuRsU6NsmiV0FPNZmNQaJ"
+          Scopes:
+            - "openid"
+            - "profile"
+            - "email"
+          SessionCookie:
+            Domain: ".zenkiet.dev"
+    memos-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          Connection: "keep-alive"
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"

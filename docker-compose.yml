@@ -1,0 +1,19 @@
+services:
+  traefik-tunnel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: traefik-tunnel
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    env_file:
+      - .env
+    volumes:
+      - ./credentials.json:/etc/cloudflared/credentials.json
+      - ./ssl:/etc/traefik/ssl
+      - ./logs/traefik:/var/log/traefik
+      - ./conf.d:/etc/traefik/conf.d
+      - /var/run/docker.sock:/var/run/docker.sock

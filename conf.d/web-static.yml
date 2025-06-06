@@ -1,0 +1,25 @@
+http:
+  routers:
+    lets-go:
+      rule: "Host(`lets-go.zenkiet.dev`)"
+      service: "lets-go"
+      middlewares:
+        - lets-go-headers
+
+  services:
+    lets-go:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://10.10.10.108:81"
+
+  middlewares:
+    lets-go-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          Connection: "keep-alive"
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
