@@ -1,0 +1,64 @@
+http:
+  routers:
+    proxmox-web:
+      rule: "Host(`pve.zenkiet.dev`) && PathPrefix(`/`)"
+      service: "proxmox"
+      middlewares:
+        - "proxmox-headers"
+    proxmox-api:
+      rule: "Host(`pve.zenkiet.dev`) && PathPrefix(`/api/`)"
+      service: "proxmox"
+      middlewares:
+        - "proxmox-api-headers"
+
+  services:
+    proxmox:
+      loadBalancer:
+        passHostHeader: true
+        serversTransport: "proxmox-transport"
+        servers:
+          - url: "https://192.168.1.239:8006"
+  middlewares:
+    proxmox-headers:
+      headers:
+        customRequestHeaders:
+          X-Requested-With: "XMLHttpRequest"
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          Connection: "Upgrade"
+          Upgrade: "websocket"
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+        accessControlAllowHeaders:
+          - "*"
+        accessControlAllowOriginList:
+          - "*"
+        accessControlMaxAge: 100
+        accessControlAllowCredentials: true
+    proxmox-api-headers:
+      headers:
+        customRequestHeaders:
+          X-Requested-With: "XMLHttpRequest"
+        accessControlAllowMethods:
+          - "GET"
+          - "POST"
+          - "PUT"
+          - "DELETE"
+          - "OPTIONS"
+        accessControlAllowHeaders:
+          - "*"
+        accessControlAllowOriginList:
+          - "*"
+        accessControlMaxAge: 3600
+        accessControlAllowCredentials: true
+  serversTransports:
+    proxmox-transport:
+      insecureSkipVerify: true
+      serverName: "pve.zenkiet.dev"

@@ -1,0 +1,34 @@
+# Cloudflare Tunnel DNS Proxy Configuration
+proxy-dns: ${CF_PROXY_DNS}
+proxy-dns-address: ${CF_PROXY_DNS_ADDRESS}
+proxy-dns-port: ${CF_PROXY_DNS_PORT}
+proxy-dns-max-upstream-conns: ${CF_PROXY_DNS_MAX_CONNS}
+proxy-dns-upstream:
+  - ${CF_DNS_UPSTREAM_1}
+  - ${CF_DNS_UPSTREAM_2}
+  - ${CF_DNS_UPSTREAM_3}
+  - ${CF_DNS_UPSTREAM_4}
+
+# Tunnel Configuration
+tunnel: ${CF_TUNNEL_ID}
+credentials-file: /etc/cloudflared/credentials.json
+
+# Ingress rules to route traffic to Traefik
+ingress:
+  # Route all traffic from your domain to Traefik
+  - hostname: "*.${BASE_DOMAIN}"
+    service: "http://${HOST}:${HTTP_PORT}"
+  - hostname: "${BASE_DOMAIN}"
+    service: "http://${HOST}:${HTTP_PORT}"
+  # Catch-all rule
+  - service: ${CF_CATCHALL_SERVICE}
+
+# Logging configuration
+logDirectory: ${CF_LOG_DIRECTORY}
+loglevel: ${CF_LOG_LEVEL}
+
+# Connection Configuration
+no-autoupdate: ${CF_NO_AUTOUPDATE}
+
+# Grace period for shutdown
+grace-period: ${CF_GRACE_PERIOD}

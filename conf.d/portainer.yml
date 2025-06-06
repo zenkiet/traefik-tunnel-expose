@@ -1,0 +1,24 @@
+http:
+  routers:
+    portainer:
+      rule: "Host(`portainer.zenkiet.dev`)"
+      service: "portainer"
+      middlewares:
+        - "portainer-headers"
+
+  services:
+    portainer:
+      loadBalancer:
+        servers:
+          - url: "http://10.10.10.100:9000"
+
+  middlewares:
+    portainer-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          Connection: "keep-alive"
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
