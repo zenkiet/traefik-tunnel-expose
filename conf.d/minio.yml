@@ -1,0 +1,56 @@
+http:
+  routers:
+    # S3 API trên api.minio.zenkiet.dev
+    minio-api:
+      rule: "Host(`api-minio.zenkiet.dev`)"
+      service: minio-api
+      middlewares:
+        - minio-headers
+
+    # Console trên minio.zenkiet.dev
+    minio-console:
+      rule: "Host(`minio.zenkiet.dev`)"
+      service: minio-console
+      middlewares:
+        - oidc-minio
+        - minio-headers
+
+  services:
+    minio-api:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://10.10.10.126:9000"
+    minio-console:
+      loadBalancer:
+        passHostHeader: true
+        servers:
+          - url: "http://10.10.10.126:9001"
+
+  middlewares:
+    # CORS & headers chung cho cả API và console
+    minio-headers:
+      headers:
+        customRequestHeaders:
+          X-Forwarded-Proto: "https"
+        customResponseHeaders:
+          Connection: "keep-alive"
+          Access-Control-Allow-Origin: "*"
+          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+
+    # OIDC plugin cho console
+    oidc-minio:
+      plugin:
+        traefik-oidc-auth:
+          Secret: "9635956ee0cbc122b3872574b27acda6"
+          Provider:
+            Url: "https://id.zenkiet.dev"
+            ClientId: "e3ea7542-0886-4796-8549-7ab9ecc8c6be"
+            ClientSecret: "PzzhV6DyfoSfKsu2UslqQNSzpiQVPzzh"
+          Scopes:
+            - "openid"
+            - "profile"
+            - "email"
+          SessionCookie:
+            Domain: ".zenkiet.dev"

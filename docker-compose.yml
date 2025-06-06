@@ -1,0 +1,28 @@
+services:
+  traefik-tunnel:
+    image: zenkiet/traefik-tunnel:${TAG:-latest}
+    container_name: traefik-tunnel
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    environment:
+      - CF_ENABLED=${CF_ENABLED}
+      - CF_API_TOKEN=${CF_API_TOKEN}
+      - CF_ZONE_API_TOKEN=${CF_ZONE_API_TOKEN}
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CF_ZONE_ID=${CF_ZONE_ID}
+      - CF_TUNNEL_ID=${CF_TUNNEL_ID}
+      - CF_ACCOUNT_ID=${CF_ACCOUNT_ID}
+      - CF_TUNNEL_SECRET=${CF_TUNNEL_SECRET}
+      - HOST=${HOST}
+      - BASE_DOMAIN=${BASE_DOMAIN}
+      - CF_API_EMAIL=${CF_API_EMAIL}
+      - ACME_CA_SERVER=${ACME_CA_SERVER}
+      - ROOT=${ROOT:-.}
+    volumes:
+      - ${ROOT}/ssl:/etc/traefik/ssl
+      - ${ROOT}/logs/traefik:/var/log/traefik
+      - ${ROOT}/conf.d:/etc/traefik/conf.d
+      - /var/run/docker.sock:/var/run/docker.sock
