@@ -147,14 +147,15 @@ setup_directories() {
 }
 
 # Function to create cloudflared credentials from token
-check_cloudflared_credentials() {
+create_cloudflared_credentials() {
     echo -e "${BLUE}🔐 Setting up Cloudflare Tunnel credentials...${NC}"
 
     local cred_file="/etc/cloudflared/credentials.json"
 
     [[ ! -f "$cred_file" ]] && {
-        echo -e "${RED}❌ Credentials file does not exist${NC}"
-        exit 1
+        echo '{"AccountTag":"'$CF_ACCOUNT_ID'","TunnelSecret":"'$CF_TUNNEL_SECRET'","TunnelID":"'$CF_TUNNEL_ID'","Endpoint":""}' >$cred_file
+        chmod 600 $cred_file
+        echo -e "${GREEN}✅ Cloudflare Tunnel credentials created${NC}"
     }
 }
 
@@ -308,7 +309,7 @@ main() {
     validate_env
     set_default_env_vars
     setup_directories
-    check_cloudflared_credentials
+    create_cloudflared_credentials
     create_dns_tunnel
     update_traefik_config
     update_cloudflared_config

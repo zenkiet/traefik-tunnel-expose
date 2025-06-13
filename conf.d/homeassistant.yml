@@ -4,17 +4,17 @@ http:
       rule: "Host(`ha.zenkiet.dev`)"
       service: "homeassistant"
       middlewares:
-        - websocket-headers
+        - homeassistant-headers
 
   services:
     homeassistant:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://10.10.10.106:8123"
+          - url: "http://10.10.10.100:8123"
 
   middlewares:
-    websocket-headers:
+    homeassistant-headers:
       headers:
         customRequestHeaders:
           X-Forwarded-Proto: "https"

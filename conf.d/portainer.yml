@@ -1,20 +1,19 @@
 http:
   routers:
-    lets-go:
-      rule: "Host(`lets-go.zenkiet.dev`)"
-      service: "lets-go"
+    portainer:
+      rule: "Host(`portainer.zenkiet.dev`)"
+      service: "portainer"
       middlewares:
-        - lets-go-headers
+        - "portainer-headers"
 
   services:
-    lets-go:
+    portainer:
       loadBalancer:
-        passHostHeader: true
         servers:
-          - url: "http://10.10.10.100:81"
+          - url: "http://10.10.10.100:9000"
 
   middlewares:
-    lets-go-headers:
+    portainer-headers:
       headers:
         customRequestHeaders:
           X-Forwarded-Proto: "https"
