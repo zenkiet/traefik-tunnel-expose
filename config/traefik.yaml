@@ -83,7 +83,6 @@ metrics:
 
 ping:
   entryPoint: "${PING_ENTRYPOINT}"
-
 # Tracing configuration (optional)
 # tracing:
 #   jaeger:
