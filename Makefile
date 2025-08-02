@@ -19,6 +19,7 @@ CONTAINER_NAME := traefik-tunnel
 DOCKERFILE := Dockerfile
 DOCKER_CONTEXT := .
 PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
+comma := ,
 BUILD_ARGS := --build-arg VERSION=$(VERSION) --build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Environment Configuration
@@ -113,7 +114,7 @@ help:
 	@echo ""
 	@echo "$(YELLOW)$(BOLD)┌─ 🔨 Build & Deployment$(RESET)"
 	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)build$(RESET)             $(DIM)Build Docker image for current platform$(RESET)"
-	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)build-multi$(RESET)       $(DIM)Build multi-architecture image$(RESET)"
+	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)buildx$(RESET)            $(DIM)Build multi-architecture image$(RESET)"
 	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)push$(RESET)              $(DIM)Push image to Docker Hub$(RESET)"
 	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)release$(RESET)           $(DIM)Create and push release version$(RESET)"
 	@echo "$(YELLOW)$(BOLD)└───$(RESET)"
@@ -139,7 +140,6 @@ help:
 	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)test-build$(RESET)        $(DIM)Test Docker image functionality$(RESET)"
 	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)test-performance$(RESET)  $(DIM)Test resource usage and limits$(RESET)"
 	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)lint$(RESET)              $(DIM)Lint and validate configurations$(RESET)"
-	@echo "$(WHITE)│$(RESET)  $(GREEN)$(BOLD)validate-config$(RESET)   $(DIM)Validate environment setup$(RESET)"
 	@echo "$(YELLOW)$(BOLD)└───$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)$(BOLD)┌─ 🔒 Security & Compliance$(RESET)"
@@ -232,19 +232,29 @@ build:
 	fi
 	$(call print_success,Build completed successfully)
 
-## Build multi-architecture image
-build-multi:
-	$(call print_step,Building multi-architecture image)
+## Build multi-architecture image with version support
+buildx:
+	$(call print_step,Building multi-architecture image for version $(VERSION))
+	@if [ "$(VERSION)" = "latest" ]; then \
+		echo "$(YELLOW)$(ICON_WARNING) Building latest version$(RESET)"; \
+	else \
+		echo "$(GREEN)$(ICON_SUCCESS) Building version $(VERSION)$(RESET)"; \
+	fi
 	@docker buildx build \
 		--platform $(PLATFORMS) \
 		--tag $(FULL_IMAGE_NAME) \
+		--tag $(DOCKER_NAMESPACE)/$(IMAGE_NAME):latest \
 		--label "org.opencontainers.image.created=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")" \
 		--label "org.opencontainers.image.version=$(VERSION)" \
+		--label "org.opencontainers.image.revision=$(shell git rev-parse HEAD 2>/dev/null || echo 'unknown')" \
 		--label "org.opencontainers.image.source=https://github.com/zenkiet/traefik-tunnel-expose" \
+		--label "org.opencontainers.image.title=Traefik Tunnel Expose" \
+		--label "org.opencontainers.image.description=Secure service exposure via Traefik Proxy & Cloudflare Tunnel" \
+		--label "org.opencontainers.image.vendor=ZenKiet" \
 		$(BUILD_ARGS) \
 		--push \
 		$(DOCKER_CONTEXT)
-	$(call print_success,Multi-architecture build completed)
+	$(call print_success,Multi-architecture build completed for version $(VERSION))
 
 ## Push image to Docker Hub
 push: build
@@ -269,7 +279,7 @@ release: build-multi
 ## Start services
 up: setup
 	$(call print_step,Starting services)
-	@docker-compose up -d
+	@docker-compose up
 	$(call print_success,Services started)
 
 ## Stop services
@@ -362,14 +372,6 @@ lint-compose:
 lint-yaml:
 	$(call print_step,Linting YAML configuration files)
 	@find $(CONFIG_DIR) $(CONF_DIR) -name "*.yml" -o -name "*.yaml" | xargs -I {} sh -c 'echo "Checking {}:" && docker run --rm -v "$(PWD)":/data cytopia/yamllint {} || true'
-
-## Validate configuration files
-validate-config:
-	$(call print_step,Validating configuration files)
-	@test -f $(ENV_FILE) || ($(call print_error,Environment file missing) && exit 1)
-	@grep -q "CF_API_TOKEN=" $(ENV_FILE) || ($(call print_error,CF_API_TOKEN not configured) && exit 1)
-	@grep -q "CF_ZONE_ID=" $(ENV_FILE) || ($(call print_error,CF_ZONE_ID not configured) && exit 1)
-	$(call print_success,Configuration validation passed)
 
 # ==============================================================================
 # 🔒 SECURITY & COMPLIANCE

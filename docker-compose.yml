@@ -1,6 +1,8 @@
 services:
-  traefik-tunnel:
-    image: zenkiet/traefik-tunnel:${TAG}
+  traefik-tunnel-expose:
+    build:
+      context: .
+      dockerfile: Dockerfile
     container_name: traefik-tunnel
     restart: ${RESTART_POLICY}
     ports:

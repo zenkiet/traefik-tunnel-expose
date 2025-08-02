@@ -24,7 +24,7 @@ ingress:
   - service: ${CF_CATCHALL_SERVICE}
 
 # Logging configuration
-logDirectory: ${CF_LOG_DIRECTORY}
+logDirectory: ${CONFIG_PATH}/logs/cloudflared
 loglevel: ${CF_LOG_LEVEL}
 
 # Connection Configuration
