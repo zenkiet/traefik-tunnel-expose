@@ -10,13 +10,14 @@
 
 set -euo pipefail
 
-CF_API_TOKEN=${CF_API_TOKEN}
+CF_ZONE_API_TOKEN=${CF_ZONE_API_TOKEN}
 ZONE_ID=${CF_ZONE_ID}
 BASE_DOMAIN=${BASE_DOMAIN}
 TRAEFIK_CONFIG_DIR=${TRAEFIK_CONFIG_DIR}
 TRAEFIK_API_URL="http://127.0.0.1:8080/api"
-LOG_FILE="/var/log/auto-dns.log"
+LOG_FILE="${CONFIG_PATH}/logs/auto-dns.log"
 
+mkdir -p "$(dirname "$LOG_FILE")"
 
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
@@ -43,14 +44,14 @@ get_hosts_from_config() {
 
 # Get existing DNS records from Cloudflare
 get_existing_dns_records() {
-    curl -s -H "Authorization: Bearer $CF_API_TOKEN" \
+    curl -s -H "Authorization: Bearer $CF_ZONE_API_TOKEN" \
         "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?per_page=100" | \
     jq -r '.result[].name' 2>/dev/null | sort -u
 }
 
 # Get existing DNS records
 get_existing_dns_records() {
-    curl -s -H "Authorization: Bearer $CF_API_TOKEN" \
+    curl -s -H "Authorization: Bearer $CF_ZONE_API_TOKEN" \
         "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records?per_page=100" | \
     jq -r '.result[].name' 2>/dev/null | sort -u
 }
@@ -63,7 +64,7 @@ create_dns_record() {
     [[ "$subdomain" == "$BASE_DOMAIN" ]] && return
 
     curl -s -X POST \
-        -H "Authorization: Bearer $CF_API_TOKEN" \
+        -H "Authorization: Bearer $CF_ZONE_API_TOKEN" \
         -H "Content-Type: application/json" \
         -d "{\"type\":\"CNAME\",\"name\":\"$subdomain\",\"content\":\"$BASE_DOMAIN\",\"ttl\":1,\"proxied\":true}" \
         "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records" >/dev/null

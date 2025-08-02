@@ -48,14 +48,17 @@
 - ☁️ **Cloudflare Tunnel** - Secure tunneling without port forwarding
 - 🔒 **Auto SSL** - Let's Encrypt certificates with DNS challenge
 - 🤖 **DNS Management** - Automatic subdomain creation
-- 📊 **Real-time Dashboard** - Monitor services and metrics
 - 🔧 **Hot Reload** - Zero-downtime configuration updates
+- 📱 **Gotify Notification** - Send notifications to your phone
+- 📦 **Multi-architecture** - Build for multiple platforms
+- 🔄 **Auto Update** - Update latest version automatically
 
 </td>
 <td width="50%">
 
 ### 🛡️ **Security & Performance**
 
+- 📊 **Real-time Dashboard** - Monitor services and metrics
 - 🔐 **End-to-end Encryption** - Secure tunnel connection
 - 🚫 **No Port Opening** - Firewall-friendly architecture
 - ⚡ **Load Balancing** - Distribute traffic efficiently
@@ -120,27 +123,59 @@ nano .env  # or your preferred editor
 #### 🔧 Required Environment Variables
 
 ```bash
+# User/Group Identifiers
+# These help avoid permission issues between host and container
+PUID=1000
+PGID=1000
+UMASK=022
+
+# Container name prefix
+CONTAINER_PREFIX=
+
+# Paths for persistent data
+CONFIG_PATH=/opt/appdata/config
+DATA_PATH=/opt/appdata/data
+
+# Container settings
+TZ=Asia/Ho_Chi_Minh
+RESTART_POLICY=unless-stopped
+NETWORK_MODE=bridge
+
 # ===== REQUIRED =====
-# Cloudflare Configuration
-CF_API_TOKEN=your_cloudflare_api_token_here
-CF_ZONE_ID=your_cloudflare_zone_id_here
-CF_TUNNEL_ID=your_cloudflare_tunnel_id_here
-CF_ACCOUNT_ID=your_cloudflare_account_id
-CF_API_EMAIL=your@email.com
-
-# Domain Configuration
-BASE_DOMAIN=yourdomain.com
 HOST=127.0.0.1
+BASE_DOMAIN=zenkiet.dev
+TAG=latest
 
-# SSL Configuration (use staging for testing)
+# =============================================================================
+# AUTO UPDADTE
+# =============================================================================
+AUTO_UPDATE=TRUE
+SCHEDULE_UPDATE=0 */6 * * *
+GOTIFY_URL=
+GOFITY_TOKEN=
+
+
+# =============================================================================
+# CLOUDFLARE TUNNEL
+# =============================================================================
+CF_ENABLED=true
+CF_ZONE_API_TOKEN=your_cloudflare_zone_api_token_here
+CF_ZONE_ID=your_cloudflare_zone_id
+CF_TUNNEL_ID=your_cloudflare_tunnel_id
+CF_ACCOUNT_ID=your_cloudflare_account_id
+CF_TUNNEL_SECRET=your_cloudflare_account_secret_id
+CF_API_EMAIL=kietgolx65234@gmail.com
 ACME_CA_SERVER=https://acme-staging-v02.api.letsencrypt.org/directory
+
+#! For production, use:
+# ACME_CA_SERVER=https://acme-v02.api.letsencrypt.org/directory
 ```
 
 ### 3️⃣ Deploy services
 
 ```bash
 # 🚀 Start services
-make dev # or make prod (for production)
+make up
 
 # 📊 Check status
 make status

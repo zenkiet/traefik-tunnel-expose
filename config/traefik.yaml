@@ -49,12 +49,12 @@ certificatesResolvers:
           - "${DNS_RESOLVER_2}"
 
 log:
-  filePath: ${LOG_FILE_PATH}
+  filePath: ${CONFIG_PATH}/logs/traefik/traefik.log
   format: ${LOG_FORMAT}
   level: ${LOG_LEVEL}
 
 accessLog:
-  filePath: ${ACCESS_LOG_PATH}
+  filePath: ${CONFIG_PATH}/logs/traefik/traefik-access.log
   format: ${ACCESS_LOG_FORMAT}
   filters:
     statusCodes:

@@ -11,7 +11,7 @@ echo -e "${BLUE}🚀 Starting Traefik Tunnel Expose...${NC}"
 
 # Function to validate environment variables
 validate_env() {
-    local required_vars=("CF_API_TOKEN" "CF_ZONE_ID" "CF_TUNNEL_ID" "BASE_DOMAIN" "HOST" "CF_API_EMAIL" "ACME_CA_SERVER")
+    local required_vars=("CONFIG_PATH" "DATA_PATH" "HOST" "BASE_DOMAIN" "CF_ZONE_ID" "CF_TUNNEL_ID" "BASE_DOMAIN" "HOST" "CF_API_EMAIL" "ACME_CA_SERVER")
     local missing_vars=()
 
     for var in "${required_vars[@]}"; do
@@ -49,7 +49,6 @@ set_default_env_vars() {
 
     #--Cloudflare Tunnel Logging--
     export CF_LOG_LEVEL=${CF_LOG_LEVEL:-"info"}
-    export CF_LOG_DIRECTORY=${CF_LOG_DIRECTORY:-"/var/log/cloudflared"}
 
     #--Connection Settings--
     export CF_NO_AUTOUPDATE=${CF_NO_AUTOUPDATE:-"true"}
@@ -91,9 +90,7 @@ set_default_env_vars() {
 
     #--Logging Configuration--
     export LOG_LEVEL=${LOG_LEVEL:-"INFO"}
-    export LOG_FILE_PATH=${LOG_FILE_PATH:-"/var/log/traefik/traefik.log"}
     export LOG_FORMAT=${LOG_FORMAT:-"json"}
-    export ACCESS_LOG_PATH=${ACCESS_LOG_PATH:-"/var/log/traefik/traefik-access.log"}
     export ACCESS_LOG_FORMAT=${ACCESS_LOG_FORMAT:-"json"}
     export LOG_RETRY_ATTEMPTS=${LOG_RETRY_ATTEMPTS:-"true"}
     export LOG_MIN_DURATION=${LOG_MIN_DURATION:-"10ms"}
@@ -186,7 +183,7 @@ create_dns_tunnel() {
     curl -s --request PUT \
         "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/cfd_tunnel/${CF_TUNNEL_ID}/configurations" \
         -H 'Content-Type: application/json' \
-        -H "Authorization: Bearer ${CF_API_TOKEN}" \
+        -H "Authorization: Bearer ${CF_ZONE_API_TOKEN}" \
         --data "$config_data" >/dev/null &&
         echo -e "${GREEN}✅ DNS routes configured${NC}" ||
         echo -e "${RED}❌ Failed to configure DNS routes${NC}"
@@ -290,7 +287,6 @@ display_info() {
     printf "%-20s %s\n" "📧 ACME Email:" "${CF_API_EMAIL:-Not Set}"
     printf "%-20s %s\n" "🔧 Log Level:" "${LOG_LEVEL:-Not Set}"
     printf "%-20s %s\n" "🔒 Cert Resolver:" "${CERT_RESOLVER:-Not Set}"
-    printf "%-20s %s\n" "☁️ DNS Provider:" "${DNS_PROVIDER:-Not Set}"
     printf "%-20s %s\n" "🚇 Tunnel:" "✅ ENABLED"
     printf "%-20s %s\n" "⏰ Started At:" "$(date '+%Y-%m-%d %H:%M:%S UTC')"
 
@@ -318,7 +314,9 @@ main() {
     display_info
 
     echo -e "${GREEN}🎉 Initialization complete! ${NC}"
-    sh /opt/scripts/services.sh
+
+    # Start services
+    bash /opt/scripts/services.sh
 }
 
 # Run main function

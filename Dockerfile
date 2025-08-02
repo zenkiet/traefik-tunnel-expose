@@ -2,7 +2,7 @@
 # Author: Zenkiet
 # -------------------------------------------------------------------
 
-FROM alpine:latest
+FROM alpine:3.19
 
 RUN apk add --no-cache bash curl jq yq ca-certificates gettext && update-ca-certificates && rm -rf /var/cache/apk/*
 
