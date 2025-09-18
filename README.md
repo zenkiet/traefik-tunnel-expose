@@ -571,7 +571,7 @@ This project wouldn't be possible without these amazing technologies:
 <table>
 <tr>
 <td align="center" width="150px">
-<img src="https://traefik.io/static/edbc30ca76cf1162cb1c4755fa80c2e8/81b87/proxy-gopher-right%403x.webp" width="60" height="60" alt="Traefik">
+<img src="https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/traefik.svg" width="60" height="60" alt="Traefik">
 <br><strong>Traefik</strong>
 <br><em>Reverse Proxy</em>
 </td>
