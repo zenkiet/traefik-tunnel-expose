@@ -34,7 +34,7 @@ experimental:
   plugins:
     traefik-oidc-auth:
       moduleName: "github.com/sevensolutions/traefik-oidc-auth"
-      version: "v0.11.0"
+      version: "v0.16.0"
 
 certificatesResolvers:
   internal:
@@ -49,12 +49,12 @@ certificatesResolvers:
           - "${DNS_RESOLVER_2}"
 
 log:
-  filePath: ${CONFIG_PATH}/logs/traefik/traefik.log
+  filePath: var/logs/traefik/traefik.log
   format: ${LOG_FORMAT}
   level: ${LOG_LEVEL}
 
 accessLog:
-  filePath: ${CONFIG_PATH}/logs/traefik/traefik-access.log
+  filePath: var/logs/traefik/traefik-access.log
   format: ${ACCESS_LOG_FORMAT}
   filters:
     statusCodes:
@@ -71,29 +71,3 @@ accessLog:
         Authorization: ${LOG_AUTHORIZATION}
         Cookie: ${LOG_COOKIE}
         Set-Cookie: ${LOG_SET_COOKIE}
-
-serversTransport:
-  insecureSkipVerify: ${INSECURE_SKIP_VERIFY}
-
-metrics:
-  prometheus:
-    addEntryPointsLabels: ${METRICS_ENTRYPOINTS}
-    addServicesLabels: ${METRICS_SERVICES}
-    entryPoint: ${METRICS_ENTRYPOINT}
-
-ping:
-  entryPoint: "${PING_ENTRYPOINT}"
-
-# Tracing configuration (optional)
-# tracing:
-#   jaeger:
-#     samplingServerURL: ${JAEGER_SAMPLING_URL}
-#     localAgentHostPort: ${JAEGER_AGENT}
-
-# Rate limiting (optional)
-# http:
-#   middlewares:
-#     rate-limit:
-#       rateLimit:
-#         burst: ${RATE_LIMIT_BURST}
-#         period: ${RATE_LIMIT_PERIOD}
