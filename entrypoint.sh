@@ -39,19 +39,17 @@ set_default_env_vars() {
     export CF_PROXY_DNS=${CF_PROXY_DNS:-"true"}
     export CF_PROXY_DNS_ADDRESS=${CF_PROXY_DNS_ADDRESS:-"0.0.0.0"}
     export CF_PROXY_DNS_PORT=${CF_PROXY_DNS_PORT:-"53"}
-    export CF_PROXY_DNS_MAX_CONNS=${CF_PROXY_DNS_MAX_CONNS:-"5"}
+    export CF_PROXY_DNS_MAX_CONNS=${CF_PROXY_DNS_MAX_CONNS:-"10"}
 
-    #--DNS Upstream Servers--
-    export CF_DNS_UPSTREAM_1=${CF_DNS_UPSTREAM_1:-"https://1.1.1.1/dns-query"}
-    export CF_DNS_UPSTREAM_2=${CF_DNS_UPSTREAM_2:-"https://1.0.0.1/dns-query"}
-    export CF_DNS_UPSTREAM_3=${CF_DNS_UPSTREAM_3:-"https://8.8.8.8/dns-query"}
-    export CF_DNS_UPSTREAM_4=${CF_DNS_UPSTREAM_4:-"https://8.8.4.4/dns-query"}
+    export CF_TUNNEL_PROTOCOL=${CF_TUNNEL_PROTOCOL:-"quic"}
+    export CF_HA_CONNECTIONS=${CF_HA_CONNECTIONS:-"6"}
 
     #--Cloudflare Tunnel Logging--
     export CF_LOG_LEVEL=${CF_LOG_LEVEL:-"info"}
 
+
     #--Connection Settings--
-    export CF_NO_AUTOUPDATE=${CF_NO_AUTOUPDATE:-"true"}
+    export CF_NO_AUTOUPDATE=${CF_NO_AUTOUPDATE:-"false"}
     export CF_GRACE_PERIOD=${CF_GRACE_PERIOD:-"30s"}
     export CF_CATCHALL_SERVICE=${CF_CATCHALL_SERVICE:-"http_status:404"}
 
@@ -71,7 +69,7 @@ set_default_env_vars() {
     export TRAEFIK_PORT=${TRAEFIK_PORT:-"8080"}
 
     #--Providers--
-    export PROVIDERS_THROTTLE=${PROVIDERS_THROTTLE:-"2s"}
+    export PROVIDERS_THROTTLE=${PROVIDERS_THROTTLE:-"5s"}
     export TRAEFIK_CONFIG_DIR=${TRAEFIK_CONFIG_DIR:-"/etc/traefik/conf.d"}
     export TRAEFIK_WATCH_CONFIG=${TRAEFIK_WATCH_CONFIG:-"true"}
 
@@ -107,9 +105,7 @@ set_default_env_vars() {
     export INSECURE_SKIP_VERIFY=${INSECURE_SKIP_VERIFY:-"true"}
 
     #--Metrics--
-    export METRICS_ENTRYPOINTS=${METRICS_ENTRYPOINTS:-"true"}
-    export METRICS_SERVICES=${METRICS_SERVICES:-"true"}
-    export METRICS_ENTRYPOINT=${METRICS_ENTRYPOINT:-"traefik"}
+    METRICS_OTLP=${METRICS_OTLP}
 
     #--Health Check--
     export PING_ENTRYPOINT=${PING_ENTRYPOINT:-"traefik"}
@@ -125,15 +121,15 @@ setup_directories() {
     # Create directories if they don't exist
     mkdir -p /etc/traefik/conf.d
     mkdir -p /etc/traefik/ssl
-    mkdir -p /var/log/traefik
-    mkdir -p /var/log/cloudflared
+    mkdir -p /var/logs/traefik
+    mkdir -p /var/logs/cloudflared
     mkdir -p /etc/cloudflared
 
     # Set proper permissions
     chmod 755 /etc/traefik/conf.d
     chmod 700 /etc/traefik/ssl
-    chmod 755 /var/log/traefik
-    chmod 755 /var/log/cloudflared
+    chmod 755 /var/logs/traefik
+    chmod 755 /var/logs/cloudflared
     chmod 755 /etc/cloudflared
 
     # Ensure acme.json exists and has correct permissions
@@ -183,7 +179,7 @@ create_dns_tunnel() {
     curl -s --request PUT \
         "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/cfd_tunnel/${CF_TUNNEL_ID}/configurations" \
         -H 'Content-Type: application/json' \
-        -H "Authorization: Bearer ${CF_ZONE_API_TOKEN}" \
+        -H "Authorization: Bearer ${CLOUDFLARE_DNS_API_TOKEN}" \
         --data "$config_data" >/dev/null &&
         echo -e "${GREEN}✅ DNS routes configured${NC}" ||
         echo -e "${RED}❌ Failed to configure DNS routes${NC}"
@@ -207,6 +203,39 @@ update_traefik_config() {
     }
 
     envsubst <$template_file >$config_file
+
+    # Add insecureSkipVerify to config if set to true
+    if [[ "$INSECURE_SKIP_VERIFY" == "true" ]]; then
+        echo "serversTransport:" >>$config_file
+        echo "  insecureSkipVerify: true" >>$config_file
+    fi
+
+    # Add metrics configuration if METRICS_OTLP is set
+    if [[ -n "$METRICS_OTLP" ]]; then
+        echo "" >>$config_file
+        echo "metrics:" >>$config_file
+        echo "  otlp:" >>$config_file
+        echo "    grpc:" >>$config_file
+        echo "      insecure: false" >>$config_file
+        echo "      endpoint: $METRICS_OTLP" >>$config_file
+    fi
+
+    # Add Trace Configuration if TRACING_OTLP is set
+    if [[ -n "$TRACING_OTLP" ]]; then
+        echo "" >>$config_file
+        echo "tracing:" >>$config_file
+        echo "  otlp:" >>$config_file
+        echo "    grpc:" >>$config_file
+        echo "      insecure: false" >>$config_file
+        echo "      endpoint: $TRACING_OTLP" >>$config_file
+    fi
+
+    # Add ping entrypoint if PING_ENTRYPOINT is set
+    if [[ -n "$PING_ENTRYPOINT" ]]; then
+        echo "ping:" >>$config_file
+        echo "  entryPoint: $PING_ENTRYPOINT" >>$config_file
+    fi
+
     rm -f $template_file
 
     echo -e "${GREEN}✅ Traefik configuration updated${NC}"
@@ -294,7 +323,7 @@ display_info() {
     echo -e "\n${GREEN}🎯 Container Status: ${BLUE}READY${NC}"
     echo -e "${GREEN}📊 Access Dashboard: ${BLUE}${HOST}:${TRAEFIK_PORT}${NC}"
     echo -e "${GREEN}📁 Config Directory: ${BLUE}/etc/traefik/conf.d${NC}"
-    echo -e "${GREEN}📝 Log Directory: ${BLUE}/var/log/traefik${NC}\n"
+    echo -e "${GREEN}📝 Log Directory: ${BLUE}/var/logs/traefik${NC}\n"
 }
 
 # Main execution

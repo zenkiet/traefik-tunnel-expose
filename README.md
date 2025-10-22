@@ -158,7 +158,7 @@ GOFITY_TOKEN=
 # CLOUDFLARE TUNNEL
 # =============================================================================
 CF_ENABLED=true
-CF_ZONE_API_TOKEN=your_cloudflare_zone_api_token_here
+CLOUDFLARE_DNS_API_TOKEN=your_cloudflare_zone_api_token_here
 CF_ZONE_ID=your_cloudflare_zone_id
 CF_TUNNEL_ID=your_cloudflare_tunnel_id
 CF_ACCOUNT_ID=your_cloudflare_account_id

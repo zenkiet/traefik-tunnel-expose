@@ -4,14 +4,30 @@ proxy-dns-address: ${CF_PROXY_DNS_ADDRESS}
 proxy-dns-port: ${CF_PROXY_DNS_PORT}
 proxy-dns-max-upstream-conns: ${CF_PROXY_DNS_MAX_CONNS}
 proxy-dns-upstream:
-  - ${CF_DNS_UPSTREAM_1}
-  - ${CF_DNS_UPSTREAM_2}
-  - ${CF_DNS_UPSTREAM_3}
-  - ${CF_DNS_UPSTREAM_4}
+  - https://1.1.1.1/dns-query
+  - https://1.0.0.1/dns-query
+  - https://dns.google/dns-query
+proxy-dns-bootstrap:
+  - 1.1.1.1
+  - 1.0.0.1
+  - 8.8.8.8
 
 # Tunnel Configuration
 tunnel: ${CF_TUNNEL_ID}
 credentials-file: /etc/cloudflared/credentials.json
+protocol: ${CF_TUNNEL_PROTOCOL}
+ha-connections: ${CF_HA_CONNECTIONS}
+edge-ip-version: auto
+
+# Origin request tuning (global)
+originRequest:
+  connectTimeout: 30s
+  tlsTimeout: 10s
+  tcpKeepAlive: 30s
+  keepAliveConnections: 100
+  keepAliveTimeout: 90s
+  http2Origin: true
+  # disableChunkedEncoding: true
 
 # Ingress rules to route traffic to Traefik
 ingress:
@@ -24,8 +40,8 @@ ingress:
   - service: ${CF_CATCHALL_SERVICE}
 
 # Logging configuration
-logDirectory: ${CONFIG_PATH}/logs/cloudflared
 loglevel: ${CF_LOG_LEVEL}
+logDirectory: var/logs/cloudflared
 
 # Connection Configuration
 no-autoupdate: ${CF_NO_AUTOUPDATE}
