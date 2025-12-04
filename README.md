@@ -12,7 +12,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/zenkiet/traefik-tunnel-expose?style=flat-square&logo=github)](https://github.com/zenkiet/traefik-tunnel-expose/stargazers)
 
 **🌐 A powerful Docker solution combining Traefik reverse proxy with Cloudflare Tunnel**
-*Expose your local services to the internet securely with automatic SSL and DNS management*
+_Expose your local services to the internet securely with automatic SSL and DNS management_
 
 [🐳 Docker Hub](https://hub.docker.com/r/zenkiet/traefik-tunnel-expose) • [🚀 Quick Start](#-quick-start) • [💬 Discussions](https://github.com/zenkiet/traefik-tunnel-expose/discussions)
 
@@ -200,8 +200,8 @@ Create configuration files in `conf.d/` directory:
 http:
   routers:
     myapp:
-      rule: "Host(`myapp.yourdomain.com`)"
-      service: "myapp-service"
+      rule: 'Host(`myapp.yourdomain.com`)'
+      service: 'myapp-service'
       entrypoints:
         - websecure
       tls:
@@ -214,10 +214,10 @@ http:
     myapp-service:
       loadBalancer:
         servers:
-          - url: "http://myapp-container:3000"
+          - url: 'http://myapp-container:3000'
         healthCheck:
-          path: "/health"
-          interval: "30s"
+          path: '/health'
+          interval: '30s'
 
   middlewares:
     default-headers:
@@ -246,8 +246,8 @@ http:
 http:
   routers:
     webapp-secure:
-      rule: "Host(`webapp.yourdomain.com`)"
-      service: "webapp"
+      rule: 'Host(`webapp.yourdomain.com`)'
+      service: 'webapp'
       entrypoints:
         - websecure
       tls:
@@ -260,13 +260,13 @@ http:
     webapp:
       loadBalancer:
         servers:
-          - url: "http://webapp:8080"
+          - url: 'http://webapp:8080'
 
   middlewares:
     auth:
       basicAuth:
         users:
-          - "admin:$2y$12$..."  # Generated with htpasswd -nb admin <password>
+          - 'admin:$2y$12$...' # Generated with htpasswd -nb admin <password>
 
     secure-headers:
       headers:
@@ -278,7 +278,7 @@ http:
           - https://yourdomain.com
         accessControlMaxAge: 100
         hostsProxyHeaders:
-          - "X-Forwarded-Host"
+          - 'X-Forwarded-Host'
 ```
 
 </details>
@@ -290,8 +290,8 @@ http:
 http:
   routers:
     db-admin:
-      rule: "Host(`db.yourdomain.com`)"
-      service: "database-admin"
+      rule: 'Host(`db.yourdomain.com`)'
+      service: 'database-admin'
       entrypoints:
         - websecure
       tls:
@@ -304,14 +304,14 @@ http:
     database-admin:
       loadBalancer:
         servers:
-          - url: "http://adminer:8080"
+          - url: 'http://adminer:8080'
 
   middlewares:
     ip-whitelist:
       ipWhiteList:
         sourceRange:
-          - "192.168.1.0/24"
-          - "10.0.0.0/8"
+          - '192.168.1.0/24'
+          - '10.0.0.0/8'
 ```
 
 </details>
@@ -325,11 +325,11 @@ http:
 1. 🌐 Navigate to [Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)
 2. 🔧 Create Custom Token with permissions:
 
-| **Scope** | **Resource** | **Permission** |
-|-----------|--------------|----------------|
-| Zone | Zone:Read | Specific zones |
-| Zone | DNS:Edit | Specific zones |
-| Account | Cloudflare Tunnel:Edit | Specific accounts |
+| **Scope** | **Resource**           | **Permission**    |
+| --------- | ---------------------- | ----------------- |
+| Zone      | Zone:Read              | Specific zones    |
+| Zone      | DNS:Edit               | Specific zones    |
+| Account   | Cloudflare Tunnel:Edit | Specific accounts |
 
 3. 📋 Copy the generated token
 
@@ -397,8 +397,7 @@ nslookup myapp.yourdomain.com
 
 ## 📊 Management Commands
 
-Using `make help` to see all commands or `make <command>` to run a specific command.
----
+## Using `make help` to see all commands or `make <command>` to run a specific command.
 
 ## 🔧 Advanced Configuration
 
@@ -415,12 +414,12 @@ tls:
   options:
     default:
       sslProtocols:
-        - "TLSv1.2"
-        - "TLSv1.3"
+        - 'TLSv1.2'
+        - 'TLSv1.3'
       cipherSuites:
-        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
-        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
-        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - 'TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384'
+        - 'TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305'
+        - 'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256'
 
 # 📊 Global Middlewares
 http:
@@ -433,8 +432,8 @@ http:
           - PUT
         accessControlMaxAge: 100
         hostsProxyHeaders:
-          - "X-Forwarded-Host"
-        referrerPolicy: "same-origin"
+          - 'X-Forwarded-Host'
+        referrerPolicy: 'same-origin'
 ```
 
 </details>
@@ -456,7 +455,7 @@ services:
           cpus: '0.5'
           memory: 256M
     healthcheck:
-      test: ["CMD", "traefik", "healthcheck"]
+      test: ['CMD', 'traefik', 'healthcheck']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -626,6 +625,6 @@ This project wouldn't be possible without these amazing technologies:
 
 **⭐ If this project helped you, please consider giving it a star! ⭐**
 
-*Made with ❤️ by [ZenKiet](https://github.com/zenkiet)*
+_Made with ❤️ by [ZenKiet](https://github.com/zenkiet)_
 
 </div>

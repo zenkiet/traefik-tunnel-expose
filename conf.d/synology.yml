@@ -1,12 +1,12 @@
 http:
   routers:
     synology:
-      rule: "Host(`nas.zenkiet.dev`)"
-      service: "synology"
+      rule: 'Host(`nas.zenkiet.dev`)'
+      service: 'synology'
 
   services:
     synology:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://10.10.10.120:5000"
+          - url: 'http://10.10.10.120:5000'

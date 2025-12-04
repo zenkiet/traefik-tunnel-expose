@@ -9,6 +9,49 @@ NC='\033[0m' # No Color
 
 echo -e "${BLUE}🚀 Starting Traefik Tunnel Expose...${NC}"
 
+# Function to install traefik and cloudflared binaries
+install_binaries() {
+    local traefik_version="${TRAEFIK_VERSION:-v3.6.4}"
+    local cloudflared_version="${CLOUDFLARED_VERSION:-2025.11.1}"
+    local os="linux"
+    local arch
+    local traefik_arch
+    local cf_arch
+
+    arch="$(uname -m)"
+    case "$arch" in
+        x86_64 | amd64) traefik_arch="amd64"; cf_arch="amd64" ;;
+        aarch64 | arm64) traefik_arch="arm64"; cf_arch="arm64" ;;
+        armv7l | armv7 | armhf) traefik_arch="armv7"; cf_arch="arm" ;;
+        *)
+            echo -e "${RED}❌ Unsupported architecture: $arch${NC}"
+            exit 1
+            ;;
+    esac
+
+    if command -v traefik >/dev/null 2>&1 && command -v cloudflared >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ Traefik & Cloudflared already installed${NC}"
+        return
+    fi
+
+    echo -e "${BLUE}⬇️  Installing Traefik ${traefik_version} and Cloudflared ${cloudflared_version} for ${os}/${traefik_arch}...${NC}"
+
+    local tmp_dir
+    tmp_dir="$(mktemp -d)"
+
+    curl -fsSL "https://github.com/traefik/traefik/releases/download/${traefik_version}/traefik_${traefik_version}_${os}_${traefik_arch}.tar.gz" \
+        -o "${tmp_dir}/traefik.tar.gz" &&
+        tar -xzf "${tmp_dir}/traefik.tar.gz" -C /usr/local/bin traefik
+
+    curl -fsSL "https://github.com/cloudflare/cloudflared/releases/download/${cloudflared_version}/cloudflared-${os}-${cf_arch}" \
+        -o /usr/local/bin/cloudflared
+
+    chmod +x /usr/local/bin/traefik /usr/local/bin/cloudflared
+    rm -rf "${tmp_dir}"
+
+    echo -e "${GREEN}✅ Binaries installed${NC}"
+}
+
 # Function to validate environment variables
 validate_env() {
     local required_vars=("CONFIG_PATH" "DATA_PATH" "HOST" "BASE_DOMAIN" "CF_ZONE_ID" "CF_TUNNEL_ID" "BASE_DOMAIN" "HOST" "CF_API_EMAIL" "ACME_CA_SERVER")
@@ -63,11 +106,6 @@ set_default_env_vars() {
     export TRAEFIK_API_INSECURE=${TRAEFIK_API_INSECURE:-"true"}
     export TRAEFIK_DEBUG=${TRAEFIK_DEBUG:-"false"}
 
-    #--Ports Configuration--
-    export HTTP_PORT=${HTTP_PORT:-"80"}
-    export HTTPS_PORT=${HTTPS_PORT:-"443"}
-    export TRAEFIK_PORT=${TRAEFIK_PORT:-"8080"}
-
     #--Providers--
     export PROVIDERS_THROTTLE=${PROVIDERS_THROTTLE:-"5s"}
     export TRAEFIK_CONFIG_DIR=${TRAEFIK_CONFIG_DIR:-"/etc/traefik/conf.d"}
@@ -113,7 +151,7 @@ set_default_env_vars() {
     export PING_ENTRYPOINT=${PING_ENTRYPOINT:-"traefik"}
 
     # --Traefik API URL--
-    export TRAEFIK_API_URL=http://${BASE_DOMAIN}:${TRAEFIK_PORT}
+    export TRAEFIK_API_URL=http://${BASE_DOMAIN}:8080
 }
 
 # Function to setup directories and permissions
@@ -163,12 +201,12 @@ create_dns_tunnel() {
             "ingress": [
                 {
                     "hostname": "'${BASE_DOMAIN}'",
-                    "service": "http://'${HOST}':'${HTTP_PORT}'",
+                    "service": "http://'${HOST}':'${80}'",
                     "originRequest": {}
                 },
                 {
                     "hostname": "*.'${BASE_DOMAIN}'",
-                    "service": "http://'${HOST}':'${HTTP_PORT}'",
+                    "service": "http://'${HOST}':'${443}'",
                     "originRequest": {}
                 },
                 {
@@ -205,6 +243,20 @@ update_traefik_config() {
     }
 
     envsubst <$template_file >$config_file
+
+    # Remove unused entrypoints if ports are not set
+    if [[ -z "$DOT_TCP_PORT" ]]; then
+        sed -i '/dot-tcp:/,/^$/d' $config_file
+    fi
+    if [[ -z "$DOT_UDP_PORT" ]]; then
+        sed -i '/dot-udp:/,/^$/d' $config_file
+    fi
+    if [[ -z "$DOQ_PORT" ]]; then
+        sed -i '/doq:/,/^$/d' $config_file
+    fi
+    if [[ -z "$DTLS_PORT" ]]; then
+        sed -i '/dtls:/,/^$/d' $config_file
+    fi
 
     # Add insecureSkipVerify to config if set to true
     if [[ "$INSECURE_SKIP_VERIFY" == "true" ]]; then
@@ -318,12 +370,16 @@ display_info() {
     printf "%-20s %s\n" "📧 ACME Email:" "${CF_API_EMAIL:-Not Set}"
     printf "%-20s %s\n" "🔧 Log Level:" "${LOG_LEVEL:-Not Set}"
     printf "%-20s %s\n" "🔒 Cert Resolver:" "${CERT_RESOLVER:-Not Set}"
-    printf "%-20s %s\n" "🚇 Tunnel:" "✅ ENABLED"
+    if [[ -z "$CF_ENABLED" || "$CF_ENABLED" == "false" ]]; then
+        printf "%-20s %s\n" "🚇 Tunnel:" "❌ DISABLED"
+    else
+        printf "%-20s %s\n" "🚇 Tunnel:" "✅ ENABLED${CF_TUNNEL_ID:+ (ID: $CF_TUNNEL_ID)}"
+    fi
     printf "%-20s %s\n" "⏰ Started At:" "$(date '+%Y-%m-%d %H:%M:%S UTC')"
 
     # Print status info
     echo -e "\n${GREEN}🎯 Container Status: ${BLUE}READY${NC}"
-    echo -e "${GREEN}📊 Access Dashboard: ${BLUE}${HOST}:${TRAEFIK_PORT}${NC}"
+    echo -e "${GREEN}📊 Access Dashboard: ${BLUE}${HOST}:8080${NC}"
     echo -e "${GREEN}📁 Config Directory: ${BLUE}/etc/traefik/conf.d${NC}"
     echo -e "${GREEN}📝 Log Directory: ${BLUE}/var/logs/traefik${NC}\n"
 }
@@ -333,6 +389,7 @@ main() {
     echo -e "${GREEN}🎯 Initializing Traefik Tunnel Expose Container...${NC}"
 
     # Run initialization steps
+    install_binaries
     validate_env
     set_default_env_vars
     setup_directories

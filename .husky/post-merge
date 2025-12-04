@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/common.sh"
+
+# Check package.json for changes
+if git diff --name-only --no-commit-id | grep -q "package.json"; then
+  echo "📦 package.json has changed, update dependencies..."
+  npm install
+fi
+
+echo "✅ Hooks post-merge passed!"
