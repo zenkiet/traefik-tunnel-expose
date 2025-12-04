@@ -1,25 +1,25 @@
-http:
-  routers:
-    rclone:
-      rule: "Host(`rclone.zenkiet.dev`)"
-      service: "rclone"
-      middlewares:
-        - rclone-headers
+# http:
+#   routers:
+#     rclone:
+#       rule: "Host(`rclone.zenkiet.dev`)"
+#       service: "rclone"
+#       middlewares:
+#         - rclone-headers
 
-  services:
-    rclone:
-      loadBalancer:
-        passHostHeader: true
-        servers:
-          - url: "http://10.10.10.117:3000"
+#   services:
+#     rclone:
+#       loadBalancer:
+#         passHostHeader: true
+#         servers:
+#           - url: "http://10.10.10.117:3000"
 
-  middlewares:
-    rclone-headers:
-      headers:
-        customRequestHeaders:
-          X-Forwarded-Proto: "https"
-        customResponseHeaders:
-          Connection: "keep-alive"
-          Access-Control-Allow-Origin: "*"
-          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
-          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+#   middlewares:
+#     rclone-headers:
+#       headers:
+#         customRequestHeaders:
+#           X-Forwarded-Proto: "https"
+#         customResponseHeaders:
+#           Connection: "keep-alive"
+#           Access-Control-Allow-Origin: "*"
+#           Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
+#           Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"

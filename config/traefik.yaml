@@ -9,44 +9,52 @@ api:
 
 entryPoints:
   web:
-    address: ":${HTTP_PORT}"
+    address: ':80'
   websecure:
-    address: ":${HTTPS_PORT}"
+    address: ':443'
     http:
       tls:
         certResolver: ${CERT_RESOLVER}
   traefik:
-    address: ":${TRAEFIK_PORT}"
+    address: ':8080'
+  dot-tcp:
+    address: ':${DOT_TCP_PORT}'
+  dot-udp:
+    address: ':${DOT_UDP_PORT}/udp'
+  doq:
+    address: ':${DOQ_PORT}/udp'
+  dtls:
+    address: ':${DTLS_PORT}/udp'
 
 providers:
   providersThrottleDuration: ${PROVIDERS_THROTTLE}
 
   file:
-    directory: "${TRAEFIK_CONFIG_DIR}"
+    directory: '${TRAEFIK_CONFIG_DIR}'
     watch: ${TRAEFIK_WATCH_CONFIG}
 
   docker:
-    endpoint: "${DOCKER_ENDPOINT}"
+    endpoint: '${DOCKER_ENDPOINT}'
     exposedByDefault: ${DOCKER_EXPOSED_DEFAULT}
     watch: ${DOCKER_WATCH}
 
 experimental:
   plugins:
     traefik-oidc-auth:
-      moduleName: "github.com/sevensolutions/traefik-oidc-auth"
-      version: "v0.16.0"
+      moduleName: 'github.com/sevensolutions/traefik-oidc-auth'
+      version: 'v0.16.0'
 
 certificatesResolvers:
   internal:
     acme:
       email: ${CF_API_EMAIL}
       storage: ${ACME_STORAGE}
-      caServer: "${ACME_CA_SERVER}"
+      caServer: '${ACME_CA_SERVER}'
       dnsChallenge:
         provider: ${DNS_PROVIDER}
         resolvers:
-          - "${DNS_RESOLVER_1}"
-          - "${DNS_RESOLVER_2}"
+          - '${DNS_RESOLVER_1}'
+          - '${DNS_RESOLVER_2}'
 
 log:
   filePath: var/logs/traefik/traefik.log
@@ -58,10 +66,10 @@ accessLog:
   format: ${ACCESS_LOG_FORMAT}
   filters:
     statusCodes:
-      - "200"
-      - "400-599"
+      - '200'
+      - '400-599'
     retryAttempts: ${LOG_RETRY_ATTEMPTS}
-    minDuration: "${LOG_MIN_DURATION}"
+    minDuration: '${LOG_MIN_DURATION}'
   bufferingSize: ${LOG_BUFFER_SIZE}
   fields:
     headers:

@@ -1,8 +1,8 @@
 http:
   routers:
     memos:
-      rule: "Host(`note.zenkiet.dev`)"
-      service: "memos"
+      rule: 'Host(`note.zenkiet.dev`)'
+      service: 'memos'
       middlewares:
         - memos-headers
 
@@ -11,7 +11,7 @@ http:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://10.10.10.100:5230"
+          - url: 'http://10.10.10.100:5230'
 
   middlewares:
     # oidc-memos:
@@ -31,9 +31,9 @@ http:
     memos-headers:
       headers:
         customRequestHeaders:
-          X-Forwarded-Proto: "https"
+          X-Forwarded-Proto: 'https'
         customResponseHeaders:
-          Connection: "keep-alive"
-          Access-Control-Allow-Origin: "*"
-          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
-          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+          Connection: 'keep-alive'
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, PUT, POST, DELETE, OPTIONS'
+          Access-Control-Allow-Headers: 'Origin, X-Requested-With, Content-Type, Accept, Authorization'

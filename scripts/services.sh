@@ -72,5 +72,18 @@ if [ "${AUTO_UPDATE:-true}" = "true" ]; then
   log "Started auto update checker with PID $update_pid"
 fi
 
+# Start dashboard if built
+if [ -f "/opt/dashboard/index.js" ]; then
+  log "Starting dashboard on port 3000..."
+  export HOST=0.0.0.0
+  export PORT=3000
+  bun /opt/dashboard/index.js --hostname $HOST --port $PORT &
+  dashboard_pid=$!
+  pids="$pids $dashboard_pid"
+  log "Started dashboard with PID $dashboard_pid"
+else
+  log "Dashboard output not found; skipping UI server"
+fi
+
 # Wait for all processes
 wait

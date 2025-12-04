@@ -1,0 +1,17 @@
+{
+	"/": [
+		"src/routes/+page.ts"
+	],
+	"/api/env": [
+		"src/routes/api/env/+server.ts"
+	],
+	"/api/files": [
+		"src/routes/api/files/+server.ts"
+	],
+	"/api/files/[id]": [
+		"src/routes/api/files/[id]/+server.ts"
+	],
+	"/api/summary": [
+		"src/routes/api/summary/+server.ts"
+	]
+}

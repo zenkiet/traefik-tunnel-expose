@@ -63,11 +63,6 @@ set_default_env_vars() {
     export TRAEFIK_API_INSECURE=${TRAEFIK_API_INSECURE:-"true"}
     export TRAEFIK_DEBUG=${TRAEFIK_DEBUG:-"false"}
 
-    #--Ports Configuration--
-    export HTTP_PORT=${HTTP_PORT:-"80"}
-    export HTTPS_PORT=${HTTPS_PORT:-"443"}
-    export TRAEFIK_PORT=${TRAEFIK_PORT:-"8080"}
-
     #--Providers--
     export PROVIDERS_THROTTLE=${PROVIDERS_THROTTLE:-"5s"}
     export TRAEFIK_CONFIG_DIR=${TRAEFIK_CONFIG_DIR:-"/etc/traefik/conf.d"}
@@ -113,7 +108,7 @@ set_default_env_vars() {
     export PING_ENTRYPOINT=${PING_ENTRYPOINT:-"traefik"}
 
     # --Traefik API URL--
-    export TRAEFIK_API_URL=http://${BASE_DOMAIN}:${TRAEFIK_PORT}
+    export TRAEFIK_API_URL=http://${BASE_DOMAIN}:8080
 }
 
 # Function to setup directories and permissions
@@ -163,12 +158,12 @@ create_dns_tunnel() {
             "ingress": [
                 {
                     "hostname": "'${BASE_DOMAIN}'",
-                    "service": "http://'${HOST}':'${HTTP_PORT}'",
+                    "service": "http://'${HOST}':'${80}'",
                     "originRequest": {}
                 },
                 {
                     "hostname": "*.'${BASE_DOMAIN}'",
-                    "service": "http://'${HOST}':'${HTTP_PORT}'",
+                    "service": "http://'${HOST}':'${443}'",
                     "originRequest": {}
                 },
                 {
@@ -205,6 +200,20 @@ update_traefik_config() {
     }
 
     envsubst <$template_file >$config_file
+
+    # Remove unused entrypoints if ports are not set
+    if [[ -z "$DOT_TCP_PORT" ]]; then
+        sed -i '/dot-tcp:/,/^$/d' $config_file
+    fi
+    if [[ -z "$DOT_UDP_PORT" ]]; then
+        sed -i '/dot-udp:/,/^$/d' $config_file
+    fi
+    if [[ -z "$DOQ_PORT" ]]; then
+        sed -i '/doq:/,/^$/d' $config_file
+    fi
+    if [[ -z "$DTLS_PORT" ]]; then
+        sed -i '/dtls:/,/^$/d' $config_file
+    fi
 
     # Add insecureSkipVerify to config if set to true
     if [[ "$INSECURE_SKIP_VERIFY" == "true" ]]; then
@@ -318,12 +327,16 @@ display_info() {
     printf "%-20s %s\n" "📧 ACME Email:" "${CF_API_EMAIL:-Not Set}"
     printf "%-20s %s\n" "🔧 Log Level:" "${LOG_LEVEL:-Not Set}"
     printf "%-20s %s\n" "🔒 Cert Resolver:" "${CERT_RESOLVER:-Not Set}"
-    printf "%-20s %s\n" "🚇 Tunnel:" "✅ ENABLED"
+    if [[ -z "$CF_ENABLED" || "$CF_ENABLED" == "false" ]]; then
+        printf "%-20s %s\n" "🚇 Tunnel:" "❌ DISABLED"
+    else
+        printf "%-20s %s\n" "🚇 Tunnel:" "✅ ENABLED${CF_TUNNEL_ID:+ (ID: $CF_TUNNEL_ID)}"
+    fi
     printf "%-20s %s\n" "⏰ Started At:" "$(date '+%Y-%m-%d %H:%M:%S UTC')"
 
     # Print status info
     echo -e "\n${GREEN}🎯 Container Status: ${BLUE}READY${NC}"
-    echo -e "${GREEN}📊 Access Dashboard: ${BLUE}${HOST}:${TRAEFIK_PORT}${NC}"
+    echo -e "${GREEN}📊 Access Dashboard: ${BLUE}${HOST}:8080${NC}"
     echo -e "${GREEN}📁 Config Directory: ${BLUE}/etc/traefik/conf.d${NC}"
     echo -e "${GREEN}📝 Log Directory: ${BLUE}/var/logs/traefik${NC}\n"
 }

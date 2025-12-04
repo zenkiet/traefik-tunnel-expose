@@ -1,22 +1,22 @@
 http:
   routers:
     passbolt:
-      rule: "Host(`pass.zenkiet.dev`)"
-      service: "passbolt"
+      rule: 'Host(`pass.zenkiet.dev`)'
+      service: 'passbolt'
       middlewares:
-        - "passbolt-headers"
+        - 'passbolt-headers'
 
   services:
     passbolt:
       loadBalancer:
         servers:
-          - url: "https://10.10.10.100:8445"
+          - url: 'https://10.10.10.100:8445'
 
   middlewares:
     passbolt-headers:
       headers:
         FrameDeny: true
-        AccessControlAllowMethods: "GET,OPTIONS,PUT"
+        AccessControlAllowMethods: 'GET,OPTIONS,PUT'
         AccessControlAllowOriginList:
           - origin-list-or-null
         AccessControlMaxAge: 100

@@ -12,7 +12,7 @@ http:
         stsIncludeSubdomains: true
         stsPreload: true
         stsSeconds: 31536000
-        customFrameOptionsValue: "SAMEORIGIN"
+        customFrameOptionsValue: 'SAMEORIGIN'
         contentSecurityPolicy: "default-src 'self'; frame-ancestors 'self'"
 
     # Rate limiting middleware
@@ -26,12 +26,12 @@ http:
     dashboard-auth:
       basicAuth:
         users:
-          - "admin:$apr1$cfiEfQl5$Jf11gw//pSKnDbqIcIss91" # Generated with htpasswd -nb admin <password>
+          - 'admin:$apr1$cfiEfQl5$Jf11gw//pSKnDbqIcIss91' # Generated with htpasswd -nb admin <password>
 
   # Define routers and services here
   routers:
     dashboard:
-      rule: "Host(`traefik.zenkiet.dev`)"
+      rule: 'Host(`traefik.zenkiet.dev`)'
       service: api@internal
       middlewares:
         - dashboard-auth

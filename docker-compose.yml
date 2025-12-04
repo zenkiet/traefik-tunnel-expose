@@ -6,9 +6,10 @@ services:
     container_name: traefik-tunnel
     restart: ${RESTART_POLICY}
     ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+      - '80:80'
+      - '443:443'
+      - '8080:8080'
+      - '3000:3000'
     env_file:
       - .env
     volumes:

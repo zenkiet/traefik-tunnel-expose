@@ -1,8 +1,8 @@
 http:
   routers:
     pulse:
-      rule: "Host(`monitor.zenkiet.dev`)"
-      service: "pulse"
+      rule: 'Host(`monitor.zenkiet.dev`)'
+      service: 'pulse'
       middlewares:
         - pulse-headers
 
@@ -11,15 +11,15 @@ http:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://10.10.10.100:7655"
+          - url: 'http://10.10.10.100:7655'
 
   middlewares:
     pulse-headers:
       headers:
         customRequestHeaders:
-          X-Forwarded-Proto: "https"
+          X-Forwarded-Proto: 'https'
         customResponseHeaders:
-          Connection: "keep-alive"
-          Access-Control-Allow-Origin: "*"
-          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
-          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+          Connection: 'keep-alive'
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, PUT, POST, DELETE, OPTIONS'
+          Access-Control-Allow-Headers: 'Origin, X-Requested-With, Content-Type, Accept, Authorization'

@@ -1,8 +1,8 @@
 http:
   routers:
     homeassistant:
-      rule: "Host(`ha.zenkiet.dev`)"
-      service: "homeassistant"
+      rule: 'Host(`ha.zenkiet.dev`)'
+      service: 'homeassistant'
       middlewares:
         - homeassistant-headers
 
@@ -11,15 +11,15 @@ http:
       loadBalancer:
         passHostHeader: true
         servers:
-          - url: "http://10.10.10.100:8123"
+          - url: 'http://10.10.10.100:8123'
 
   middlewares:
     homeassistant-headers:
       headers:
         customRequestHeaders:
-          X-Forwarded-Proto: "https"
+          X-Forwarded-Proto: 'https'
         customResponseHeaders:
-          Connection: "keep-alive"
-          Access-Control-Allow-Origin: "*"
-          Access-Control-Allow-Methods: "GET, PUT, POST, DELETE, OPTIONS"
-          Access-Control-Allow-Headers: "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+          Connection: 'keep-alive'
+          Access-Control-Allow-Origin: '*'
+          Access-Control-Allow-Methods: 'GET, PUT, POST, DELETE, OPTIONS'
+          Access-Control-Allow-Headers: 'Origin, X-Requested-With, Content-Type, Accept, Authorization'

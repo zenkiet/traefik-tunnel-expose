@@ -2,7 +2,7 @@
 # Author: Zenkiet
 # -------------------------------------------------------------------
 
-FROM alpine:3.19
+FROM oven/bun:alpine
 
 RUN apk add --no-cache bash curl jq yq ca-certificates gettext && update-ca-certificates && rm -rf /var/cache/apk/*
 
@@ -19,11 +19,14 @@ COPY config/ /tmp/tpl/
 COPY scripts/ /opt/scripts/
 RUN chmod +x /opt/scripts/*.sh
 
+# Build dashboard
+COPY dashboard/build /opt/dashboard
+
 # Copy and setup entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Expose ports
-EXPOSE 80 443 8080
+EXPOSE 80 443 8080 3000
 
 CMD ["/app/entrypoint.sh"]
