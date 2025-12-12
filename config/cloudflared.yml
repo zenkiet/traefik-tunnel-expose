@@ -32,10 +32,10 @@ originRequest:
 # Ingress rules to route traffic to Traefik
 ingress:
   # Route all traffic from your domain to Traefik
-  - hostname: "*.${BASE_DOMAIN}"
-    service: "http://${HOST}:${HTTP_PORT}"
-  - hostname: "${BASE_DOMAIN}"
-    service: "http://${HOST}:${HTTP_PORT}"
+  - hostname: '*.${BASE_DOMAIN}'
+    service: 'http://${HOST}:80'
+  - hostname: '${BASE_DOMAIN}'
+    service: 'http://${HOST}:443'
   # Catch-all rule
   - service: ${CF_CATCHALL_SERVICE}
 

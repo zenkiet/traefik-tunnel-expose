@@ -18,7 +18,7 @@ CONTAINER_NAME := traefik-tunnel
 # Build Configuration
 DOCKERFILE := Dockerfile
 DOCKER_CONTEXT := .
-PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
+PLATFORMS := linux/amd64,linux/arm64
 comma := ,
 BUILD_ARGS := --build-arg VERSION=$(VERSION) --build-arg BUILD_DATE=$(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
