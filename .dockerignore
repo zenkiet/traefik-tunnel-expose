@@ -27,6 +27,11 @@ build.sh
 *.tar.gz
 *.zip
 
+# Frontend deps/build artifacts
+node_modules
+.svelte-kit
+build
+
 # IDE
 .vscode/
 .idea/

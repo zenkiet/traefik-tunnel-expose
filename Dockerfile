@@ -1,29 +1,65 @@
+# syntax=docker/dockerfile:1.19.0
 # -------------------------------------------------------------------
 # Author: Zenkiet
 # -------------------------------------------------------------------
 
-FROM alpine:3.19
+ARG BUN_IMAGE=oven/bun:alpine
+ARG TRAEFIK_VERSION=v3.6.4
+ARG CLOUDFLARED_VERSION=2025.11.1
 
-RUN apk add --no-cache bash curl jq yq ca-certificates gettext && update-ca-certificates && rm -rf /var/cache/apk/*
+# Stage 1: Build Frontend
+FROM ${BUN_IMAGE} AS builder
 
-RUN TRAEFIK_VERSION=$(curl -s https://api.github.com/repos/traefik/traefik/releases/latest | jq -r '.tag_name') && \
-  CLOUDFLARED_VERSION=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name') && \
-  curl -fsSL "https://github.com/traefik/traefik/releases/download/${TRAEFIK_VERSION}/traefik_${TRAEFIK_VERSION}_linux_amd64.tar.gz" \
-  | tar -xz -C /usr/local/bin/ && \
-  curl -fsSL "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-amd64" \
-  -o /usr/local/bin/cloudflared && \
-  chmod +x /usr/local/bin/traefik /usr/local/bin/cloudflared
+WORKDIR /app
 
-# Copy configuration files
-COPY config/ /tmp/tpl/
-COPY scripts/ /opt/scripts/
-RUN chmod +x /opt/scripts/*.sh
+# Copy dependency files first
+COPY package.json bun.lock* ./
 
-# Copy and setup entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Install ALL dependencies (including devDependencies for build)
+RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache \
+  bun install --frozen-lockfile
 
-# Expose ports
-EXPOSE 80 443 8080
+# Copy source and build
+COPY . .
+RUN bun run build
+
+# Remove devDependencies after build
+RUN bun install --frozen-lockfile --production && \
+  rm -rf .cache
+
+# Stage 2: Runtime
+FROM ${BUN_IMAGE}
+
+LABEL maintainer="Zenkiet" \
+  description="Traefik reverse proxy with Cloudflared tunnel and Svelte dashboard"
+
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+
+# Install all runtime dependencies in one layer
+RUN apk add --no-cache \
+  bash \
+  curl \
+  jq \
+  yq \
+  ca-certificates \
+  gettext && \
+  update-ca-certificates && \
+  rm -rf /var/cache/apk/* /tmp/* /var/tmp/*
+
+ENV TRAEFIK_VERSION=${TRAEFIK_VERSION} \
+  CLOUDFLARED_VERSION=${CLOUDFLARED_VERSION}
+
+# Copy application files
+COPY --link config/ /tmp/tpl/
+COPY --link --chmod=755 scripts/ /opt/scripts/
+COPY --link --chmod=755 entrypoint.sh /app/entrypoint.sh
+
+# Copy built frontend + dependencies from builder
+COPY --from=builder --link /app/build /opt/dashboard/
+COPY --from=builder --link /app/package.json /app/package.json
+
+WORKDIR /app
+
+EXPOSE 80 443 8080 3000
 
 CMD ["/app/entrypoint.sh"]

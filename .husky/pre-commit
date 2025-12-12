@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname "$0")/common.sh"
+
+echo "🔍 Checking code before commit..."
+
+npx lint-staged ||
+(
+  echo "❌ Please check lint-staged errors!"
+  false;
+)
+
+echo "✅ Lint-staged passed!"
