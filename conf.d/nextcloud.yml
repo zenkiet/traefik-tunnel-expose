@@ -14,4 +14,4 @@ http:
         passHostHeader: true
         serversTransport: skip-verify
         servers:
-          - url: "http://10.10.10.100:8085"
+          - url: 'http://10.10.10.100:8085'

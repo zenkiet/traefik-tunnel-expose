@@ -1,0 +1,110 @@
+name: 🚀 Release & Publish Images
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: zenkiet/traefik-tunnel-expose
+
+jobs:
+  prepare:
+    name: Prepare release metadata
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.meta.outputs.version }}
+      tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - name: Derive version from tag
+        id: meta
+        run: |
+          RAW_REF="${GITHUB_REF_NAME}"
+          VERSION="${RAW_REF#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "tag=${RAW_REF}" >> "$GITHUB_OUTPUT"
+
+  publish:
+    name: Build & push (${{ matrix.variant }})
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: alpine
+            bun_image: oven/bun:alpine
+          - variant: debian
+            bun_image: oven/bun:debian
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          build-args: |
+            BUN_IMAGE=${{ matrix.bun_image }}
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ matrix.variant }}-${{ needs.prepare.outputs.version }}
+            ${{ env.IMAGE_NAME }}:${{ matrix.variant }}-latest
+          labels: |
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.version=${{ needs.prepare.outputs.version }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.title=traefik-tunnel-expose
+
+  release:
+    name: Publish GitHub release
+    needs:
+      - prepare
+      - publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Traefik Tunnel Expose ${{ needs.prepare.outputs.version }}
+          body: |
+            Automated release for `${{ needs.prepare.outputs.tag }}`.
+
+            Published Docker tags:
+            - `${{ env.IMAGE_NAME }}:alpine-${{ needs.prepare.outputs.version }}`
+            - `${{ env.IMAGE_NAME }}:debian-${{ needs.prepare.outputs.version }}`
+            - `${{ env.IMAGE_NAME }}:alpine-latest`
+            - `${{ env.IMAGE_NAME }}:debian-latest`
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Release summary
+        run: |
+          cat <<'EOF' >> "$GITHUB_STEP_SUMMARY"
+          ## Release ${{ needs.prepare.outputs.tag }}
+          - Docker Hub: ${{ env.IMAGE_NAME }}
+          - Tags pushed:
+            - alpine-${{ needs.prepare.outputs.version }} (latest)
+            - debian-${{ needs.prepare.outputs.version }} (latest)
+          EOF

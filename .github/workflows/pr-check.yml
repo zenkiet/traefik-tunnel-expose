@@ -2,7 +2,7 @@ name: 🔍 PR Security & Validation Check
 
 on:
   pull_request:
-    branches: [ develop ]
+    branches: [develop]
 
 jobs:
   security-validation:
@@ -67,4 +67,4 @@ jobs:
               "title": "❌ PR Validation Failed - Traefik Tunnel Expose",
               "message": "🚨 PR validation failed!\n\n📋 PR: #${{ github.event.number }}\n🌿 Branch: ${{ github.head_ref }}\n👤 Author: ${{ github.event.pull_request.user.login }}\n📝 Title: ${{ github.event.pull_request.title }}\n🔗 PR: ${{ github.event.pull_request.html_url }}\n📋 Logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
               "priority": 7
-            }' 
+            }'

@@ -1,0 +1,9 @@
+. "$(dirname "$0")/common.sh"
+
+npx commitlint --edit $1 ||
+(
+    echo -e "\n❌ Please check commit message format! \n"
+    false;
+)
+
+echo -e "✅ Commit message format correct! \n"

@@ -1,29 +1,72 @@
+# syntax=docker/dockerfile:1.19.0
 # -------------------------------------------------------------------
 # Author: Zenkiet
 # -------------------------------------------------------------------
 
-FROM alpine:3.19
+ARG BUN_IMAGE=oven/bun:alpine
+ARG TRAEFIK_VERSION=v3.6.4
+ARG CLOUDFLARED_VERSION=2025.11.1
 
-RUN apk add --no-cache bash curl jq yq ca-certificates gettext && update-ca-certificates && rm -rf /var/cache/apk/*
+# Stage 1: Build Frontend
+FROM ${BUN_IMAGE} AS builder
 
-RUN TRAEFIK_VERSION=$(curl -s https://api.github.com/repos/traefik/traefik/releases/latest | jq -r '.tag_name') && \
-  CLOUDFLARED_VERSION=$(curl -s https://api.github.com/repos/cloudflare/cloudflared/releases/latest | jq -r '.tag_name') && \
-  curl -fsSL "https://github.com/traefik/traefik/releases/download/${TRAEFIK_VERSION}/traefik_${TRAEFIK_VERSION}_linux_amd64.tar.gz" \
-  | tar -xz -C /usr/local/bin/ && \
-  curl -fsSL "https://github.com/cloudflare/cloudflared/releases/download/${CLOUDFLARED_VERSION}/cloudflared-linux-amd64" \
-  -o /usr/local/bin/cloudflared && \
-  chmod +x /usr/local/bin/traefik /usr/local/bin/cloudflared
+WORKDIR /app
 
-# Copy configuration files
-COPY config/ /tmp/tpl/
-COPY scripts/ /opt/scripts/
-RUN chmod +x /opt/scripts/*.sh
+# Copy dependency
+COPY package.json ./
+COPY bun.lock* ./
+COPY src ./
 
-# Copy and setup entrypoint script
-COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+# Install dependencies
+RUN bun install --frozen-lockfile
 
-# Expose ports
-EXPOSE 80 443 8080
+# Copy source and build
+COPY . .
+RUN bun run build
 
-CMD ["/app/entrypoint.sh"]
+# Remove devDependencies after build
+RUN bun install --frozen-lockfile --production && \
+  rm -rf .cache
+
+# Stage 2: Runtime
+FROM ${BUN_IMAGE}
+
+LABEL maintainer="Zenkiet" \
+      description="Traefik reverse proxy with Cloudflared tunnel and Svelte dashboard"
+
+# Install runtime dependencies
+RUN set -eux; \
+    if command -v apk >/dev/null 2>&1; then \
+      apk add --no-cache bash curl jq yq ca-certificates gettext; \
+      update-ca-certificates; \
+    elif command -v apt-get >/dev/null 2>&1; then \
+      apt-get update; \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        bash \
+        curl \
+        jq \
+        yq \
+        ca-certificates \
+        gettext; \
+      update-ca-certificates; \
+      rm -rf /var/lib/apt/lists/*; \
+    else \
+      echo "Unsupported base image: ${BUN_IMAGE}" >&2; \
+      exit 1; \
+    fi
+
+ENV TRAEFIK_VERSION=${TRAEFIK_VERSION} \
+    CLOUDFLARED_VERSION=${CLOUDFLARED_VERSION} \
+    NODE_ENV=production
+
+WORKDIR /app
+
+COPY --link config/ /tmp/tpl/
+COPY --link --chmod=755 scripts/ /opt/scripts/
+COPY --link --chmod=755 entrypoint.sh ./entrypoint.sh
+
+COPY --link --from=builder /app/build /opt/dashboard/
+
+EXPOSE 80 443 8080 3000
+
+CMD ["./entrypoint.sh"]

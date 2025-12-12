@@ -1,0 +1,133 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+:root {
+	font-family:
+		'Inter',
+		system-ui,
+		-apple-system,
+		BlinkMacSystemFont,
+		'Segoe UI',
+		sans-serif;
+	color: #e5ecf5;
+	background: #0b1021;
+	color-scheme: dark;
+	--card: rgba(255, 255, 255, 0.04);
+	--border: rgba(255, 255, 255, 0.08);
+	--text: #e5ecf5;
+	--muted: #94a3b8;
+	--accent: #60a5fa;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+	background:
+		radial-gradient(circle at 15% 20%, rgba(99, 102, 241, 0.12), transparent 32%),
+		radial-gradient(circle at 80% 0%, rgba(14, 165, 233, 0.16), transparent 28%), #0b1021;
+	color: var(--text);
+	transition:
+		background 180ms ease,
+		color 180ms ease;
+}
+
+a {
+	color: inherit;
+	text-decoration: none;
+}
+
+code {
+	font-family:
+		'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+		monospace;
+}
+
+/* Base glass effect - dùng chung cho tất cả các element cần hiệu ứng glass */
+.glass {
+	background: var(--card);
+	border: 1px solid var(--border);
+	box-shadow: 0 10px 50px rgba(0, 0, 0, 0.08);
+	backdrop-filter: blur(10px) saturate(130%);
+	transition:
+		background 180ms ease,
+		border-color 180ms ease,
+		box-shadow 180ms ease;
+}
+
+.soft-button {
+	@apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-sm font-semibold text-white shadow-sm transition duration-150;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+
+	&:focus {
+		outline: none;
+		border-color: rgba(96, 165, 250, 0.6);
+		box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.3);
+	}
+
+	&:hover {
+		border-color: rgba(96, 165, 250, 0.4);
+		box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+	}
+
+	&:active {
+		background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
+		box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+	}
+
+	&:disabled,
+	&.disabled {
+		opacity: 0.45;
+		cursor: not-allowed;
+		box-shadow: none;
+		border-color: rgba(255, 255, 255, 0.06);
+	}
+
+	&.active {
+		border-color: rgba(96, 165, 250, 0.9);
+		background: linear-gradient(180deg, rgba(59, 130, 246, 0.16), rgba(255, 255, 255, 0.02));
+	}
+}
+
+.pill {
+	@apply rounded-full px-3 py-1 text-xs font-semibold;
+	background: rgba(255, 255, 255, 0.06);
+	color: #cbd5e1;
+	transition:
+		background 180ms ease,
+		color 180ms ease;
+}
+
+.input {
+	@apply form-input w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-white shadow-inner focus:border-blue-400/60 focus:bg-white/10;
+}
+
+.scrollable {
+	@apply overflow-y-auto;
+	scrollbar-width: thin;
+	scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+}
+
+.scrollable::-webkit-scrollbar {
+	width: 6px;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+	background: rgba(148, 163, 184, 0.6);
+	border-radius: 9999px;
+}
+
+.badge {
+	@apply inline-flex items-center gap-1 rounded-full bg-blue-500/20 px-2.5 py-1 text-[11px] font-semibold text-blue-100;
+}
+
+@keyframes fadeWave {
+	0%,
+	100% {
+		opacity: 0.2;
+	}
+	50% {
+		opacity: 1;
+	}
+}
