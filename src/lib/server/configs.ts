@@ -1,12 +1,12 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { ensureConfPath, pathExists, paths } from './paths';
 import type { ConfigFile } from '$lib/types';
+import { createDirectory, readFile } from './files';
 
 const SAFE_NAME = /^[A-Za-z0-9._-]+$/;
 
 export async function loadConfigs(): Promise<ConfigFile[]> {
-	await fs.mkdir(paths.services, { recursive: true });
+	await createDirectory(paths.services);
 
 	const baseEntries: ConfigFile[] = [
 		{
@@ -14,55 +14,53 @@ export async function loadConfigs(): Promise<ConfigFile[]> {
 			label: 'Traefik',
 			filePath: paths.traefik,
 			category: 'core',
-			exists: pathExists(paths.traefik)
+			exists: await pathExists(paths.traefik)
 		},
 		{
 			id: 'cloudflared',
 			label: 'Cloudflared',
 			filePath: paths.cloudflared,
 			category: 'core',
-			exists: pathExists(paths.cloudflared)
+			exists: await pathExists(paths.cloudflared)
 		}
 	];
 
-	const dynamicEntries = await fs
-		.readdir(paths.services, { withFileTypes: true })
-		.catch(() => [])
-		.then((entries) =>
-			entries
-				.filter((entry) => entry.isFile() && /\.(ya?ml)$/i.test(entry.name))
-				.map((entry) => {
-					const filePath = path.join(paths.services, entry.name);
-					return {
-						id: `service/${entry.name}`,
-						label: entry.name,
-						filePath,
-						category: 'service',
-						exists: true
-					};
-				})
-		);
+	const glob = new Bun.Glob('*.{yml,yaml}');
+	const dynamicEntries: ConfigFile[] = [];
 
-	const enrichedBase = await Promise.all(baseEntries.map((entry) => enrichWithStats(entry)));
-	const enrichedDynamic = await Promise.all(
-		dynamicEntries.map((entry) => enrichWithStats(entry as ConfigFile, true))
-	);
+	for await (const fileName of glob.scan({ cwd: paths.services, onlyFiles: true })) {
+		const filePath = path.join(paths.services, fileName);
+		dynamicEntries.push({
+			id: `service/${fileName}`,
+			label: fileName,
+			filePath,
+			category: 'service',
+			exists: true
+		});
+	}
+
+	const [enrichedBase, enrichedDynamic] = await Promise.all([
+		Promise.all(baseEntries.map((entry) => enrichWithStats(entry))),
+		Promise.all(dynamicEntries.map((entry) => enrichWithStats(entry, true)))
+	]);
 
 	return [...enrichedBase, ...enrichedDynamic].sort((a, b) => a.label.localeCompare(b.label));
 }
 
 export async function resolveEntry(id: string): Promise<ConfigFile | null> {
 	if (id.startsWith('service/')) {
-		const name = id.replace(/^service\//, '');
-		if (!SAFE_NAME.test(name)) return null;
-		const filePath = ensureConfPath(name);
+		const label = id.replace(/^service\//, '');
+		if (!SAFE_NAME.test(label)) return null;
+
+		const filePath = ensureConfPath(label);
+		const exists = await pathExists(filePath);
 
 		return {
 			id,
-			label: name,
+			label: label,
 			filePath,
 			category: 'service',
-			exists: pathExists(filePath)
+			exists
 		};
 	}
 
@@ -75,18 +73,22 @@ export function extractHosts(content: string): string[] {
 }
 
 async function enrichWithStats(entry: ConfigFile, includeHosts = false): Promise<ConfigFile> {
+	if (!entry.exists) return entry;
+
 	try {
-		const stat = await fs.stat(entry.filePath);
+		const file = Bun.file(entry.filePath);
+
+		const size = file.size;
+		const lastModified = file.lastModified;
 
 		const result: ConfigFile = {
 			...entry,
-			exists: true,
-			size: stat.size,
-			updatedAt: stat.mtime.toISOString()
+			size,
+			updatedAt: new Date(lastModified).toISOString()
 		};
 
 		if (includeHosts) {
-			const content = await fs.readFile(entry.filePath, 'utf8').catch(() => '');
+			const content = await file.text();
 			const hosts = extractHosts(content);
 			if (hosts.length) result.hosts = hosts;
 		}

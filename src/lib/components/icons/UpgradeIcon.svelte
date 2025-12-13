@@ -2,7 +2,7 @@
 	const input = $props<{ isLoading: boolean }>();
 </script>
 
-<svg id="upgrade" class="h-6 w-6" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<svg id="upgrade" class="size-6" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
 	<g>
 		<path
 			class={`fill-none stroke-current stroke-2 transition-opacity duration-200 ${

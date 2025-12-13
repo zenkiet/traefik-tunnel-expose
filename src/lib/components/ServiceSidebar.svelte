@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ConfigFile } from '$lib/types';
 	import { toast } from '$lib/services/toast';
+	import Button from './ui/button.svelte';
 
 	let {
 		services,
@@ -140,14 +141,10 @@
 	}
 </script>
 
-<aside class="glass p-4 rounded-2xl relative flex flex-col gap-4 h-full">
+<aside class="panel relative flex h-full flex-col gap-4">
 	<div class="flex items-center justify-between gap-2">
-		<h1 class="text-lg font-semibold text-slate-50 md:text-xl">Config Dashboard</h1>
-		<span
-			class="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-medium text-emerald-200"
-		>
-			{services.length} services
-		</span>
+		<p class="section-label">Config</p>
+		<span class="badge">{services.length} services</span>
 	</div>
 
 	<div class="mt-2 flex items-center gap-2">
@@ -160,94 +157,54 @@
 		</div>
 
 		<div class="flex items-center gap-2">
-			<button
-				class="soft-button py-2 px-2"
-				type="button"
-				title="Import YAML"
-				aria-label="Import YAML"
-				onclick={() => (isImportOpen = true)}
-			>
-				<svg
-					class="h-5 w-5 text-slate-100"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"
-					/>
-					<path stroke-linecap="round" stroke-linejoin="round" d="M7 10l5-6 5 6" />
-					<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12" />
-				</svg>
-			</button>
+			<Button size="icon" onclick={() => (isImportOpen = true)} title="Import services">
+				<i class="icon-[duotone--upload] size-5"></i>
+			</Button>
 
-			<button
-				class="soft-button py-2 px-2 disabled:opacity-50"
-				type="button"
+			<Button
+				size="icon"
+				onclick={exportServices}
 				title="Export services"
 				aria-label="Export services"
-				onclick={exportServices}
 			>
-				<svg
-					class="h-5 w-5 text-slate-100"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="2"
-				>
-					<path
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						d="M20 7V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2"
-					/>
-					<path stroke-linecap="round" stroke-linejoin="round" d="M7 14l5 6 5-6" />
-					<path stroke-linecap="round" stroke-linejoin="round" d="M12 20V8" />
-				</svg>
-			</button>
+				<i class="icon-[duotone--download] size-5"></i>
+			</Button>
 		</div>
-		<button class="soft-button py-2 px-2" type="button" onclick={onCreate}>
-			<span class="text-base leading-none">＋</span>
-		</button>
+
+		<Button size="icon" onclick={onCreate} title="Add service" aria-label="Add service">
+			<i class="icon-[duotone--plus] size-5"></i>
+		</Button>
 	</div>
 
-	<div class="glass rounded-xl p-3 mt-3 h-full">
-		<p class="text-xs font-medium uppercase tracking-[0.18em] text-slate-400">Services</p>
+	<div class="panel-nested mt-3 h-full">
+		<p class="section-label">Services</p>
 		<div class="mt-3 grid gap-3 transition-all duration-200 sm:grid-cols-2">
 			{#if filteredServices.length}
 				{#each filteredServices as file (file.id)}
-					<div class="relative group">
-						<button
-							class={`soft-button group w-full text-left text-sm transition-all duration-200 ${
-								selectedId === file.id
-									? 'active'
-									: 'border-slate-700/70 bg-slate-900/60 hover:border-emerald-400/60 hover:bg-slate-900'
-							}`}
-							onclick={() => onSelect(file.id)}
-						>
-							<div class="flex items-start justify-between gap-2 w-full">
-								<div class="min-w-0">
-									<p class="truncate text-[13px] font-semibold text-slate-50">{file.label}</p>
-									<p class="mt-0.5 line-clamp-2 text-xs text-slate-400">
-										{file.hosts?.join(', ') ?? file.relativePath}
-									</p>
-								</div>
+					<button
+						class="service-card {selectedId === file.id ? 'active' : ''}"
+						onclick={() => onSelect(file.id)}
+					>
+						<div class="flex w-full items-start justify-between gap-2">
+							<div class="min-w-0">
+								<p class="truncate text-[13px] font-semibold">{file.label}</p>
+								<p class="mt-0.5 line-clamp-2 text-xs text-muted">
+									{file.hosts?.join(', ') ?? file.relativePath}
+								</p>
 							</div>
-						</button>
-					</div>
+						</div>
+					</button>
 				{/each}
 			{:else}
-				<p class="mt-1 text-xs text-slate-500">No services match your search.</p>
+				<p class="mt-1 text-xs text-hint">No services match your search.</p>
 			{/if}
 		</div>
 	</div>
 
 	{#if isImportOpen}
-		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-3">
+		<div class="modal-backdrop">
 			<div
-				class="glass relative w-full max-w-2xl rounded-2xl border border-white/10 bg-slate-950/90 p-6 shadow-2xl"
+				class="modal-lg"
 				role="region"
 				ondragover={(event) => {
 					event.preventDefault();
@@ -261,57 +218,31 @@
 			>
 				<div class="flex items-start justify-between gap-3">
 					<div>
-						<p class="text-xs font-semibold uppercase tracking-widest text-slate-400">Import</p>
-						<h3 id="import-title" class="text-xl font-semibold text-slate-50">Add Service files</h3>
-						<p class="text-sm text-slate-400">Drag and drop or select multiple .yml files.</p>
+						<p class="section-label">Import</p>
+						<h3 class="section-title">Add Service files</h3>
+						<p class="text-sm text-muted">Drag and drop or select multiple .yml files.</p>
 					</div>
-					<button
-						class="soft-button px-2 py-1.5 text-xs"
-						type="button"
-						aria-label="Close import"
-						onclick={closeImport}
-					>
-						Close
-					</button>
+
+					<Button size="icon" type="button" aria-label="Close import" onclick={closeImport}>
+						<i class="icon-[duotone--xmark] size-4"></i>
+					</Button>
 				</div>
 
-				<div
-					class={`mt-4 flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed p-6 text-center transition ${
-						isDragging
-							? 'border-emerald-400/80 bg-emerald-500/5'
-							: 'border-white/10 bg-slate-900/60'
-					}`}
-				>
-					<div
-						class="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-emerald-200"
-					>
-						<svg
-							class="h-5 w-5 text-slate-100"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M4 17v2a1 1 0 001 1h14a1 1 0 001-1v-2"
-							/>
-							<path stroke-linecap="round" stroke-linejoin="round" d="M7 10l5-6 5 6" />
-							<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12" />
-						</svg>
+				<div class="drop-zone mt-4 {isDragging ? 'active' : ''}">
+					<div class="icon-box size-12 rounded-full text-[var(--emerald)]">
+						<i class="icon-[duotone--download] size-5"></i>
 					</div>
-					<p class="text-sm text-slate-200">
-						<span class="font-semibold text-emerald-200">Drag and drop</span> or
+					<p class="text-sm">
+						<span class="font-semibold text-[var(--emerald)]">Drag and drop</span> or
 						<button
 							type="button"
-							class="cursor-pointer underline underline-offset-4 decoration-emerald-400 hover:text-emerald-200"
+							class="link-accent cursor-pointer underline underline-offset-4"
 							onclick={() => fileInput?.click()}
 						>
 							choose files
 						</button>
 					</p>
-					<p class="text-xs text-slate-400">Support .yml files only</p>
+					<p class="text-xs text-hint">Support .yml files only</p>
 					<input
 						accept={acceptTypes}
 						bind:this={fileInput}
@@ -323,18 +254,16 @@
 				</div>
 
 				{#if selectedFiles.length}
-					<div class="mt-4 space-y-2 rounded-xl border border-white/5 bg-slate-900/60 p-3 text-sm">
-						<p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-							Selected files: ({selectedFiles.length})
-						</p>
-						<ul class="max-h-48 space-y-1 overflow-y-auto text-slate-200">
+					<div class="panel-nested mt-4 text-sm">
+						<p class="section-label">Selected files: ({selectedFiles.length})</p>
+						<ul class="scrollable mt-2 max-h-48 space-y-1">
 							{#each selectedFiles as file, idx (file.name)}
 								<li
-									class="flex items-center justify-between gap-2 rounded-lg px-2 py-1 hover:bg-white/5"
+									class="flex items-center justify-between gap-2 rounded-lg px-2 py-1 hover:bg-[var(--card-hover)]"
 								>
 									<span class="truncate font-mono text-xs">{file.name}</span>
 									<button
-										class="text-xs text-slate-400 hover:text-red-200 cursor-pointer"
+										class="cursor-pointer text-xs text-muted hover:text-[var(--destructive)]"
 										type="button"
 										onclick={() => (selectedFiles = selectedFiles.filter((_, i) => i !== idx))}
 									>
@@ -347,12 +276,13 @@
 				{/if}
 
 				<div class="mt-5 flex flex-wrap items-center justify-end gap-2">
-					<button class="soft-button bg-white/5 text-slate-200" type="button" onclick={closeImport}>
+					<Button variant="outline" type="button" onclick={closeImport} disabled={importing}>
 						Cancel
-					</button>
-					<button class="soft-button" type="button" onclick={importFiles} disabled={importing}>
+					</Button>
+
+					<Button type="button" onclick={importFiles} disabled={importing}>
 						{importing ? 'Importing...' : 'Import'}
-					</button>
+					</Button>
 				</div>
 			</div>
 		</div>

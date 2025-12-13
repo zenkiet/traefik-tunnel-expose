@@ -52,6 +52,18 @@ install_binaries() {
     echo -e "${GREEN}✅ Binaries installed${NC}"
 }
 
+# Function to install bun runtime
+install_bun() {
+    if command -v bun >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ Bun already installed${NC}"
+        return
+    fi
+    echo -e "${BLUE}⬇️  Installing Bun runtime...${NC}"
+    curl -fsSL https://bun.sh/install | bash
+    export PATH="$HOME/.bun/bin:$PATH"
+    echo -e "${GREEN}✅ Bun installed${NC}"
+}
+
 # Function to validate environment variables
 validate_env() {
     local required_vars=("CONFIG_PATH" "DATA_PATH" "HOST" "BASE_DOMAIN" "CF_ZONE_ID" "CF_TUNNEL_ID" "BASE_DOMAIN" "HOST" "CF_API_EMAIL" "ACME_CA_SERVER")
@@ -388,6 +400,7 @@ main() {
 
     # Run initialization steps
     install_binaries
+    install_bun
     validate_env
     set_default_env_vars
     setup_directories
