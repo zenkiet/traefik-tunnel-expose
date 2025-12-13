@@ -1,13 +1,22 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const root = '/etc';
+// const root = '/etc';
+
+// export const paths = {
+// 	root,
+// 	traefik: path.join(root, '/traefik', 'traefik.yaml'),
+// 	cloudflared: path.join(root, '/cloudflared', 'cloudflared.yml'),
+// 	services: path.join(root, '/traefik', 'conf.d')
+// };
+
+const root = '/Volumes/Data/Projects/traefik-tunnel-expose';
 
 export const paths = {
 	root,
-	traefik: path.join(root, '/traefik', 'traefik.yaml'),
-	cloudflared: path.join(root, '/cloudflared', 'cloudflared.yml'),
-	services: path.join(root, '/traefik', 'conf.d')
+	traefik: path.join(root, 'config', 'traefik.yaml'),
+	cloudflared: path.join(root, 'config', 'cloudflared.yml'),
+	services: path.join(root, 'conf.d')
 };
 
 export function isInside(base: string, target: string): boolean {

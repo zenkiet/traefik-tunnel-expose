@@ -19,7 +19,7 @@
 	/>
 </svelte:head>
 
-<div class="min-h-screen bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 text-slate-100">
+<div class="min-h-screen antialiased transition-colors duration-200">
 	<ToastHost />
 	<slot />
 </div>

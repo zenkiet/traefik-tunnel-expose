@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { ConfigFile } from '$lib/types';
 	import { toast } from '$lib/services/toast';
+	import Button from './ui/button.svelte';
 
 	let {
 		services,
@@ -160,13 +161,7 @@
 		</div>
 
 		<div class="flex items-center gap-2">
-			<button
-				class="soft-button py-2 px-2"
-				type="button"
-				title="Import YAML"
-				aria-label="Import YAML"
-				onclick={() => (isImportOpen = true)}
-			>
+			<Button size="icon" onclick={() => (isImportOpen = true)}>
 				<svg
 					class="h-5 w-5 text-slate-100"
 					viewBox="0 0 24 24"
@@ -182,14 +177,13 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M7 10l5-6 5 6" />
 					<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12" />
 				</svg>
-			</button>
+			</Button>
 
-			<button
-				class="soft-button py-2 px-2 disabled:opacity-50"
-				type="button"
+			<Button
+				size="icon"
+				onclick={exportServices}
 				title="Export services"
 				aria-label="Export services"
-				onclick={exportServices}
 			>
 				<svg
 					class="h-5 w-5 text-slate-100"
@@ -206,11 +200,20 @@
 					<path stroke-linecap="round" stroke-linejoin="round" d="M7 14l5 6 5-6" />
 					<path stroke-linecap="round" stroke-linejoin="round" d="M12 20V8" />
 				</svg>
-			</button>
+			</Button>
 		</div>
-		<button class="soft-button py-2 px-2" type="button" onclick={onCreate}>
-			<span class="text-base leading-none">＋</span>
-		</button>
+
+		<Button size="icon" onclick={onCreate} title="Add service" aria-label="Add service">
+			<svg
+				class="h-5 w-5 text-slate-100"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+			</svg>
+		</Button>
 	</div>
 
 	<div class="glass rounded-xl p-3 mt-3 h-full">
@@ -219,10 +222,10 @@
 			{#if filteredServices.length}
 				{#each filteredServices as file (file.id)}
 					<div class="relative group">
-						<button
-							class={`soft-button group w-full text-left text-sm transition-all duration-200 ${
+						<Button
+							class={`w-full text-left text-sm transition-all duration-200 ${
 								selectedId === file.id
-									? 'active'
+									? 'border-emerald-400/70!'
 									: 'border-slate-700/70 bg-slate-900/60 hover:border-emerald-400/60 hover:bg-slate-900'
 							}`}
 							onclick={() => onSelect(file.id)}
@@ -235,7 +238,7 @@
 									</p>
 								</div>
 							</div>
-						</button>
+						</Button>
 					</div>
 				{/each}
 			{:else}
@@ -265,14 +268,19 @@
 						<h3 id="import-title" class="text-xl font-semibold text-slate-50">Add Service files</h3>
 						<p class="text-sm text-slate-400">Drag and drop or select multiple .yml files.</p>
 					</div>
-					<button
-						class="soft-button px-2 py-1.5 text-xs"
-						type="button"
-						aria-label="Close import"
-						onclick={closeImport}
-					>
-						Close
-					</button>
+
+					<Button size="icon" type="button" aria-label="Close import" onclick={closeImport}>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							class="h-4 w-4"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+						</svg>
+					</Button>
 				</div>
 
 				<div
@@ -347,12 +355,13 @@
 				{/if}
 
 				<div class="mt-5 flex flex-wrap items-center justify-end gap-2">
-					<button class="soft-button bg-white/5 text-slate-200" type="button" onclick={closeImport}>
+					<Button variant="outline" type="button" onclick={closeImport} disabled={importing}>
 						Cancel
-					</button>
-					<button class="soft-button" type="button" onclick={importFiles} disabled={importing}>
+					</Button>
+
+					<Button type="button" onclick={importFiles} disabled={importing}>
 						{importing ? 'Importing...' : 'Import'}
-					</button>
+					</Button>
 				</div>
 			</div>
 		</div>

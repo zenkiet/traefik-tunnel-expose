@@ -21,7 +21,8 @@ export const BINARY_CONFIG: Record<BINARY, BinaryConfig> = {
 	[BINARY.TRAEFIK]: {
 		icon: getIcon['../assets/traefik.svg'],
 		name: 'Traefik',
-		path: '/usr/local/bin/traefik',
+		// path: '/usr/local/bin/traefik',
+		path: '/Users/kietle/Desktop/test/latest/traefik',
 		githubRepo: 'traefik/traefik',
 		versionArgs: ['version'],
 		getDownloadUrl: (version: string) => {
@@ -33,8 +34,9 @@ export const BINARY_CONFIG: Record<BINARY, BinaryConfig> = {
 	},
 	[BINARY.CLOUDFLARED]: {
 		icon: getIcon['../assets/cloudflare.svg'],
+		// path: '/usr/local/bin/cloudflared',
 		name: 'Cloudflare Tunnel',
-		path: '/usr/local/bin/cloudflared',
+		path: '/Users/kietle/Desktop/test/latest/cloudflared',
 		githubRepo: 'cloudflare/cloudflared',
 		versionArgs: ['version'],
 		getDownloadUrl: (version: string) =>

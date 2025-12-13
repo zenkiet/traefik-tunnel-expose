@@ -3,12 +3,11 @@
 # Author: Zenkiet
 # -------------------------------------------------------------------
 
-ARG BUN_IMAGE=oven/bun:alpine
 ARG TRAEFIK_VERSION=v3.6.4
 ARG CLOUDFLARED_VERSION=2025.11.1
 
 # Stage 1: Build Frontend
-FROM ${BUN_IMAGE} AS builder
+FROM oven/bun:alpine AS builder
 
 WORKDIR /app
 
@@ -29,7 +28,7 @@ RUN bun install --frozen-lockfile --production && \
   rm -rf .cache
 
 # Stage 2: Runtime
-FROM ${BUN_IMAGE}
+FROM alpine
 
 LABEL maintainer="Zenkiet" \
       description="Traefik reverse proxy with Cloudflared tunnel and Svelte dashboard"
@@ -37,7 +36,7 @@ LABEL maintainer="Zenkiet" \
 # Install runtime dependencies
 RUN set -eux; \
     if command -v apk >/dev/null 2>&1; then \
-      apk add --no-cache bash curl jq yq ca-certificates gettext; \
+  apk add --no-cache bash curl libstdc++ jq yq ca-certificates gettext; \
       update-ca-certificates; \
     elif command -v apt-get >/dev/null 2>&1; then \
       apt-get update; \

@@ -3,7 +3,7 @@ name: 🚀 Release & Publish Images
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
 
 env:

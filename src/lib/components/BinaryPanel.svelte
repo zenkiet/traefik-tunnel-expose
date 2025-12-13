@@ -41,12 +41,11 @@
 	}
 </script>
 
-<div class="glass rounded-2xl border border-slate-800 bg-slate-950/85 p-6 shadow-xl">
-	<div class="flex flex-wrap items-start justify-between gap-3">
-		<div class="space-y-1">
-			<p class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200/80">Status</p>
-			<h3 class="text-xl font-semibold text-slate-50 md:text-2xl">Traefik Tunnel Expose</h3>
-		</div>
+<div class="glass rounded-2xl p-6">
+	<div class="flex flex-wrap items-center justify-between gap-3">
+		<span class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-200/80">
+			Status
+		</span>
 		<div
 			class="inline-flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5 text-emerald-100"
 		>
@@ -112,7 +111,7 @@
 							</div>
 						</div>
 
-						<div class="flex flex-wrap items-center justify-between gap-3 text-sm text-slate-200">
+						<div class="flex flex-wrap items-center justify-end w-100 gap-3 text-sm text-slate-200">
 							<div class="space-y-1">
 								<p class="text-[11px] uppercase tracking-[0.16em] text-slate-500 text-end">Path</p>
 								<span

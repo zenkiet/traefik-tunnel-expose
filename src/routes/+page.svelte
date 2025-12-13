@@ -6,12 +6,15 @@
 	import EditorPanel from '$lib/components/EditorPanel.svelte';
 	import NewServiceModal from '$lib/components/dialogs/NewServiceModal.svelte';
 	import DeleteConfirmModal from '$lib/components/dialogs/DeleteConfirmModal.svelte';
+	import AppHeader from '$lib/components/AppHeader.svelte';
+	import { initAppState } from '$lib/state';
 	import type { ConfigFile, Summary } from '$lib/types';
 	import type { PageData } from './$types';
 	import type { SubmitFunction } from '@sveltejs/kit';
-	import { onMount, untrack } from 'svelte';
+	import { untrack } from 'svelte';
 
 	const { data }: { data: PageData } = $props();
+	initAppState();
 
 	/** States */
 	let summary = $state<Summary>(untrack(() => data.summary));
@@ -20,7 +23,6 @@
 
 	// File editor state
 	let selectedId = $state('');
-	let fileContent = $state('');
 
 	// UI state
 	let search = $state('');
@@ -35,12 +37,6 @@
 	const services = $derived(files.filter((f) => f.category === 'service'));
 	const selectedEntry = $derived(files.find((f) => f.id === selectedId) ?? null);
 	// const configDir = $derived((envValues.CONFIG_DIR || 'conf.d').replace(/\/+$/, ''));
-
-	/** Life Cycle */
-	onMount(async () => {
-		const first = services.find((f) => f.exists) ?? services[0];
-		if (first?.id) await loadFile(first.id);
-	});
 
 	/** API */
 	async function refresh() {
@@ -61,60 +57,6 @@
 			summary = payload.summary ?? summary;
 		} else {
 			toast.error('Refresh failed', 'Unable to fetch summary');
-		}
-	}
-
-	async function loadFile(id: string) {
-		if (selectedEntry && !selectedEntry.exists) {
-			files = files.filter((f) => f.id !== selectedEntry.id);
-		}
-
-		if (!id) return;
-
-		selectedId = id;
-
-		const entry = files.find((f) => f.id === id);
-
-		// Handle new (non-existent) files
-		if (entry && !entry.exists) {
-			return;
-		}
-
-		await fetch(`/api/files/${encodeURIComponent(id)}`)
-			.then(async (res) => {
-				if (res.ok) {
-					const payload = await res.json();
-					fileContent = payload.content ?? '';
-				}
-			})
-			.catch(() => {
-				toast.error('Load failed', 'Unable to load file');
-				fileContent = '';
-			});
-	}
-
-	async function saveFile(e?: Event) {
-		e?.preventDefault();
-		if (!selectedId) return;
-
-		const label = selectedEntry?.label ?? selectedId;
-
-		try {
-			const res = await fetch(`/api/files/${encodeURIComponent(selectedId)}`, {
-				method: 'PUT',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ content: fileContent })
-			});
-
-			if (!res.ok) {
-				throw new Error((await res.text()) || 'Unable to save file');
-			}
-
-			await refresh();
-			toast.success('Saved configuration', label ? `${label} updated` : 'File saved');
-		} catch (err) {
-			const message = err instanceof Error ? err.message : 'Failed to save file';
-			toast.error('Save failed', message);
 		}
 	}
 
@@ -200,7 +142,7 @@
 
 		files = [...files, entry];
 		selectedId = id;
-		fileContent = serviceTemplate(slug, summary.baseDomain);
+		// fileContent = serviceTemplate(slug, summary.baseDomain);
 		newServiceError = '';
 		toast.info('New service draft', `${finalFile} ready to edit`);
 	}
@@ -244,8 +186,8 @@
 			if (selectedId === deleteTarget?.id) {
 				const next = files.find((f) => f.exists) ?? files[0];
 				selectedId = next?.id ?? '';
-				if (next?.id) await loadFile(next.id);
-				else fileContent = '';
+				// if (next?.id) await loadFile(next.id);
+				// else fileContent = '';
 			}
 			toast.info('Draft removed', targetLabel ? `${targetLabel} discarded` : 'Draft removed');
 			cancelDelete();
@@ -267,8 +209,8 @@
 			if (selectedId === deleteTarget.id) {
 				const next = files.find((f) => f.exists) ?? files[0];
 				selectedId = next?.id ?? '';
-				if (next?.id) await loadFile(next.id);
-				else fileContent = '';
+				// if (next?.id) await loadFile(next.id);
+				// else fileContent = '';
 			}
 		} catch (err) {
 			const message = err instanceof Error ? err.message : 'Failed to delete file';
@@ -277,37 +219,33 @@
 			cancelDelete();
 		}
 	}
-
-	function handleContentChange(content: string) {
-		fileContent = content;
-	}
 </script>
 
-<section class="mx-auto max-w-full px-4 py-6 lg:py-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
-	<div class="flex flex-col gap-4">
-		<BinaryPanel {versions} version={summary.version} />
-		<ServiceSidebar
-			{services}
-			{selectedId}
-			{search}
-			onSelect={loadFile}
-			onCreate={openNewModal}
-			onRefresh={refresh}
-		/>
-	</div>
+<main>
+	<AppHeader />
 
-	<div class="flex flex-col gap-4">
-		<EnvironmentForm {summary} {handleEnvSubmit} />
+	<div class="mx-auto max-w-full px-4 lg:px-6">
+		<section class="py-6 lg:py-8 grid grid-cols-1 gap-5 lg:grid-cols-2">
+			<div class="flex flex-col gap-4">
+				<BinaryPanel {versions} version={summary.version} />
+				<ServiceSidebar
+					{services}
+					{selectedId}
+					{search}
+					onSelect={(id) => (selectedId = id)}
+					onCreate={openNewModal}
+					onRefresh={refresh}
+				/>
+			</div>
 
-		<EditorPanel
-			{selectedEntry}
-			{fileContent}
-			onSave={saveFile}
-			onDelete={promptDelete}
-			onContentChange={handleContentChange}
-		/>
+			<div class="flex flex-col gap-4">
+				<EnvironmentForm {summary} {handleEnvSubmit} />
+
+				<EditorPanel {selectedEntry} onRefresh={refresh} onDelete={promptDelete} />
+			</div>
+		</section>
 	</div>
-</section>
+</main>
 
 <NewServiceModal
 	open={showNewModal}
