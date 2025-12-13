@@ -1,12 +1,7 @@
-import { exec, execFile } from 'node:child_process';
-import util from 'node:util';
 import type { VersionInfo } from '$lib/types';
 import { BINARY, BINARY_CONFIG } from '$lib/types/binary';
 import { getGithubApiUrl } from '$lib/utils/api';
 import { extractVersion } from '$lib/utils/regex';
-
-const execFileAsync = util.promisify(execFile);
-const execAsync = util.promisify(exec);
 
 export async function getVersion(): Promise<VersionInfo> {
 	const binaries = Object.values(BINARY);
@@ -15,7 +10,7 @@ export async function getVersion(): Promise<VersionInfo> {
 		Promise.all(
 			binaries.map(async (binary) => {
 				const config = BINARY_CONFIG[binary];
-				const { stdout } = await execFileAsync(config.path, config.versionArgs);
+				const stdout = await getBinaryVersionOutput(config.path, config.versionArgs);
 				return { binary, version: extractVersion(stdout) || 'unknown' };
 			})
 		),
@@ -46,13 +41,12 @@ export async function getLatestVersion(link: string): Promise<string> {
 
 export async function updateBinary(binary: BINARY, version: string): Promise<VersionInfo[BINARY]> {
 	const config = BINARY_CONFIG[binary];
-
 	const downloadUrl = config.getDownloadUrl(version);
 
 	const command = config.extractCommand(downloadUrl, config.path);
-	await execAsync(command);
+	await Bun.$`${{ raw: command }}`;
 
-	const { stdout } = await execFileAsync(config.path, config.versionArgs);
+	const stdout = await getBinaryVersionOutput(config.path, config.versionArgs);
 	const result = extractVersion(stdout) || 'unknown';
 
 	return {
@@ -60,4 +54,22 @@ export async function updateBinary(binary: BINARY, version: string): Promise<Ver
 		needUpdate: false,
 		latest: result
 	};
+}
+
+async function getBinaryVersionOutput(path: string, args: string[]): Promise<string> {
+	try {
+		const proc = Bun.spawn([path, ...args], {
+			stdout: 'pipe',
+			stderr: 'ignore'
+		});
+
+		const output = await new Response(proc.stdout).text();
+
+		await proc.exited;
+
+		return output;
+	} catch (error) {
+		console.error('Error getting binary version output:', error);
+		return '';
+	}
 }
