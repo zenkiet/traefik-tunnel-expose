@@ -1,5 +1,3 @@
-import { getIcon } from '$lib/utils/icon';
-
 export const BACKUP_DIR = '/tmp/backup';
 
 export enum BINARY {

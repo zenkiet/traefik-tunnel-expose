@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { ensureConfPath, pathExists, paths } from './paths';
 import type { ConfigFile } from '$lib/types';
-import { createDirectory, readFile } from './files';
+import { createDirectory } from './files';
 
 const SAFE_NAME = /^[A-Za-z0-9._-]+$/;
 

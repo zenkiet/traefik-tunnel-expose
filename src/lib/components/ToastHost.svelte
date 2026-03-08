@@ -46,9 +46,7 @@
 	};
 </script>
 
-<div
-	class="pointer-events-none fixed inset-0 z-50 flex flex-col items-end gap-3 px-4 py-6 sm:px-6"
->
+<div class="pointer-events-none fixed inset-0 z-50 flex flex-col items-end gap-3 px-4 py-6 sm:px-6">
 	{#each $toast as item (item.id)}
 		<div
 			animate:flip={{ duration: 300 }}
@@ -61,12 +59,13 @@
 				role={item.intent === 'error' ? 'alert' : 'status'}
 				aria-live={item.intent === 'error' ? 'assertive' : 'polite'}
 			>
-				<div class="absolute inset-y-0 left-0 w-1.5 bg-linear-to-b {theme[item.intent].bar}">
-				</div>
+				<div class="absolute inset-y-0 left-0 w-1.5 bg-linear-to-b {theme[item.intent].bar}"></div>
 
 				<div class="relative flex gap-3 p-4">
 					<div
-						class="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-xl border border-token shadow-inner {theme[item.intent].iconBg}"
+						class="mt-0.5 flex size-11 shrink-0 items-center justify-center rounded-xl border border-token shadow-inner {theme[
+							item.intent
+						].iconBg}"
 					>
 						{#if item.intent === 'success'}
 							<i class="icon-[duotone--badge-check] size-5"></i>

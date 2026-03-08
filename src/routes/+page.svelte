@@ -80,33 +80,33 @@
 			.replace(/-{2,}/g, '-')
 			.replace(/^-+|-+$/g, '');
 
-	const serviceTemplate = (service: string, domain: string): string => {
-		const svc = service || 'service';
-		const dom = domain || 'example.com';
+	// 	const serviceTemplate = (service: string, domain: string): string => {
+	// 		const svc = service || 'service';
+	// 		const dom = domain || 'example.com';
 
-		return `http:
-  routers:
-    ${svc}:
-      rule: "Host(\`${svc}.${dom}\`)"
-      service: "${svc}-svc"
-      middlewares:
-        - default-headers
+	// 		return `http:
+	//   routers:
+	//     ${svc}:
+	//       rule: "Host(\`${svc}.${dom}\`)"
+	//       service: "${svc}-svc"
+	//       middlewares:
+	//         - default-headers
 
-  services:
-    ${svc}-svc:
-      loadBalancer:
-        servers:
-          - url: "http://${svc}:80"
-        passHostHeader: true
+	//   services:
+	//     ${svc}-svc:
+	//       loadBalancer:
+	//         servers:
+	//           - url: "http://${svc}:80"
+	//         passHostHeader: true
 
-  middlewares:
-    default-headers:
-      headers:
-        sslRedirect: true
-        frameDeny: true
-        browserXssFilter: true
-`;
-	};
+	//   middlewares:
+	//     default-headers:
+	//       headers:
+	//         sslRedirect: true
+	//         frameDeny: true
+	//         browserXssFilter: true
+	// `;
+	// 	};
 
 	function createService(name: string, fileName?: string) {
 		const slug = slugify(name.replace(/\.(yml|yaml)$/i, ''));
