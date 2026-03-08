@@ -86,9 +86,9 @@
 				jsYaml.load(content);
 				isValidYaml = true;
 				yamlError = null;
-			} catch (error: any) {
+			} catch (error: unknown) {
 				isValidYaml = false;
-				yamlError = error.message ?? 'Invalid YAML';
+				yamlError = error instanceof Error ? error.message : 'Invalid YAML';
 			}
 		}, 300);
 	}
@@ -107,8 +107,8 @@
 			if (!res.ok) throw new Error(await res.text());
 
 			toast.success('Saved', `${selectedEntry.label || 'File'} updated`);
-		} catch (error: any) {
-			toast.error('Save failed', error.message);
+		} catch (error: unknown) {
+			toast.error('Save failed', error instanceof Error ? error.message : 'Unknown error');
 		}
 	}
 </script>

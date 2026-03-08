@@ -81,7 +81,9 @@
 	get: () => boolean;
 	set: (v: boolean) => void;
 })}
-	<div class="flex items-center justify-between rounded-xl border border-token bg-card px-3 py-2 text-sm">
+	<div
+		class="flex items-center justify-between rounded-xl border border-token bg-card px-3 py-2 text-sm"
+	>
 		<div class="flex flex-col">
 			<span class="text-xs font-medium tracking-wide">{label}</span>
 			{#if desc}

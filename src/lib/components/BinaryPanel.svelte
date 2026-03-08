@@ -45,8 +45,11 @@
 				const message = (await res.text()) || res.statusText;
 				toast.error(`Update ${binary} failed:`, message);
 			}
-		} catch (error: any) {
-			toast.error(`Update ${binary} failed:`, error?.message ?? String(error));
+		} catch (error: unknown) {
+			toast.error(
+				`Update ${binary} failed:`,
+				error instanceof Error ? error.message : String(error)
+			);
 		} finally {
 			updating = { ...updating, [binary]: false };
 		}

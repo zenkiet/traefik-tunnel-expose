@@ -8,7 +8,7 @@ export async function buildSummary(): Promise<Summary> {
 	const files = await loadConfigs();
 	const services = files.filter((file) => file.category === 'service').length;
 	const core = files.length - services;
-	const version = '2.0.0';
+	const version = '2.1.0';
 
 	return {
 		version,

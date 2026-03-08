@@ -13,11 +13,7 @@
 
 {#if open}
 	<div class="modal-backdrop">
-		<button
-			type="button"
-			aria-label="Close modal"
-			class="absolute inset-0"
-			onclick={onCancel}
+		<button type="button" aria-label="Close modal" class="absolute inset-0" onclick={onCancel}
 		></button>
 
 		<div class="modal">
