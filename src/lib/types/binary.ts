@@ -17,8 +17,7 @@ type BinaryConfig = {
 export const BINARY_CONFIG: Record<BINARY, BinaryConfig> = {
 	[BINARY.TRAEFIK]: {
 		name: 'Traefik',
-		// path: '/usr/local/bin/traefik',
-		path: '/Users/kietle/Desktop/test/traefik',
+		path: '/usr/local/bin/traefik',
 		githubRepo: 'traefik/traefik',
 		versionArgs: ['version'],
 		getDownloadUrl: (version: string) => {
@@ -29,9 +28,8 @@ export const BINARY_CONFIG: Record<BINARY, BinaryConfig> = {
 			`curl -L "${downloadUrl}" -o /tmp/traefik.tar.gz && tar -xzf /tmp/traefik.tar.gz -C /tmp/ && mv /tmp/traefik ${targetPath} && chmod +x ${targetPath}`
 	},
 	[BINARY.CLOUDFLARED]: {
-		// path: '/usr/local/bin/cloudflared',
+		path: '/usr/local/bin/cloudflared',
 		name: 'Cloudflare Tunnel',
-		path: '/Users/kietle/Desktop/test/cloudflared',
 		githubRepo: 'cloudflare/cloudflared',
 		versionArgs: ['version'],
 		getDownloadUrl: (version: string) =>

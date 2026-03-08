@@ -11,8 +11,8 @@ echo -e "${BLUE}🚀 Starting Traefik Tunnel Expose...${NC}"
 
 # Function to install traefik and cloudflared binaries
 install_binaries() {
-    local traefik_version="${TRAEFIK_VERSION:-v3.6.4}"
-    local cloudflared_version="${CLOUDFLARED_VERSION:-2025.11.1}"
+    local traefik_version="${TRAEFIK_VERSION:-v3.6.10}"
+    local cloudflared_version="${CLOUDFLARED_VERSION:-2026.2.0}"
     local os="linux"
     local arch
     local traefik_arch
