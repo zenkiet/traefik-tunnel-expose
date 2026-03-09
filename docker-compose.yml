@@ -13,6 +13,7 @@ services:
     env_file:
       - .env
     volumes:
+      - ./conf.d:/etc/traefik/conf.d
       - ${DATA_PATH}/ssl:/etc/traefik/ssl
       - ${DATA_PATH}/logs:/var/logs
       - /var/run/docker.sock:/var/run/docker.sock
